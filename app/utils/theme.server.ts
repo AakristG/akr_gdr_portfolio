@@ -1,5 +1,4 @@
 import { createCookieSessionStorage } from "@remix-run/node";
-
 import { getRequiredServerEnvVar } from "../utils/misc";
 import { Theme, isTheme } from "./theme-provider";
 
@@ -10,21 +9,24 @@ const themeStorage = createCookieSessionStorage({
     secrets: [getRequiredServerEnvVar("SESSION_SECRET")],
     sameSite: "lax",
     path: "/",
-    // no theme for you on Kent's 100th birthday! 😂
-    expires: new Date("2088-10-18"),
     httpOnly: true,
   },
 });
 
 async function getThemeSession(request: Request) {
   const session = await themeStorage.getSession(request.headers.get("Cookie"));
+  
   return {
     getTheme: () => {
       const themeValue = session.get("theme");
       return isTheme(themeValue) ? themeValue : Theme.DARK;
     },
     setTheme: (theme: Theme) => session.set("theme", theme),
-    commit: () => themeStorage.commitSession(session),
+    
+    // Set the 'expires' option dynamically when committing the session
+    commit: () => themeStorage.commitSession(session, {
+      expires: new Date(Date.now() + 730 * 24 * 60 * 60 * 1000) // TODO:expires in 360 days from 10/09/2024
+    }),
   };
 }
 

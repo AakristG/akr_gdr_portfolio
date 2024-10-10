@@ -1,5 +1,5 @@
 import StaggerParent from "~/components/StaggerParent";
-import StaggerChild from "~/components/StaggerChild";
+import StaggerChild from "../components/StaggerChild";
 import SpringLoad from "~/components/SpringLoad";
 import { useEffect, useState } from "react";
 import { isMobile } from "react-device-detect";
@@ -26,7 +26,7 @@ export default function Index() {
     <div className="mx-0 my-[2em] flex min-h-[400px] flex-[1] items-center justify-between max-w-md:flex-col-reverse">
       <StaggerParent className="max-w-md:flex-[0 flex-[1] px-[1em] py-0 max-w-md:pb-[2em] max-w-md:text-center">
         <h1 className="mb-[0.5em] text-2xl font-bold leading-[1.3] md:text-4xl">
-          Hi there! I'm Raj.
+          Hi there! I'm Aakrist.
         </h1>
         <StaggerChild>
           <p className="text-lg md:text-xl">
