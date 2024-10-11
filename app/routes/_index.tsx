@@ -5,11 +5,13 @@ import { useEffect, useState } from "react";
 import { isMobile } from "react-device-detect";
 import { imgSrcs } from "~/data/blogMetaData";
 import { NavLink } from "@remix-run/react";
+import { ReactTyped  } from 'react-typed';
 
 export default function Index() {
   const [isClient, setIsClient] = useState(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false || isMobile);
   const [imgSrc, setImgSrc] = useState("");
+  
 
   useEffect(() => {
     setIsClient(true);
@@ -29,34 +31,44 @@ export default function Index() {
     <div className="mx-0 my-[2em] flex min-h-[400px] flex-[1] items-center justify-between max-w-md:flex-col-reverse">
       <StaggerParent className="max-w-md:flex-[0 flex-[1] px-[1em] py-0 max-w-md:pb-[2em] max-w-md:text-center">
         <h1 className="mb-[0.5em] text-2xl font-bold leading-[1.3] md:text-4xl">
-          Hi there! I'm Aakrist.
+          {"Hi there! I'm Aakrist."}
         </h1>
         <StaggerChild>
           <p className="text-lg md:text-xl">
-            I'm a software engineering leader.
-            <br />
-            I like to write about Typescript, React, Node.js
-            <br />
-            and Software Architecture.
+            <div className="animated-typing">
+              <ReactTyped 
+                strings={[
+                  "An Aspiring Software Engineer",
+                  "Machine Learning Researcher",
+                  "Back-End and Front-End Developer",
+                  "Computer Engineer",
+                  "Passionate about Robotic"
+                ]}
+                typeSpeed={100}
+                backSpeed={50}
+                loop
+                />
+            </div>
           </p>
         </StaggerChild>
         <br />
         <StaggerChild>
           <p className="text-lg md:text-xl">
-            Read my <NavLink to={"/blog"}> Blog Posts</NavLink>.
+            Read my coding <NavLink to={"/blog"}> Blog Posts</NavLink>.
           </p>
         </StaggerChild>
         <br />
         <StaggerChild>
           <p className="text-lg md:text-xl">
-            Find me on{" "}
+            Find about more about me on{" "}
             <a
-              href="https://www.linkedin.com/in/rajesh-babu-56270046/"
+              href="https://www.linkedin.com/in/aakristg/"
               target="_blank"
               rel="noopener noreferrer"
             >
               Linkedin
             </a>
+            {/* This can be leetcode later on
             {", "}
             <a
               href="https://twitter.com/razzmattazzz"
@@ -64,10 +76,10 @@ export default function Index() {
               rel="noopener noreferrer"
             >
               Twitter
-            </a>
+            </a> */}
             {" or "}
             <a
-              href="https://github.com/rajeshbabu-oviva"
+              href="https://github.com/AakristG"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -79,15 +91,13 @@ export default function Index() {
         <br />
         <StaggerChild>
           <p className="text-lg md:text-xl">
-            Do you like my template ?
-            <br />
-            Check out the{" "}
+            {"My template can be found in "} 
             <a
-              href="https://github.com/rajeshbabu-oviva/remix-mdx-blog"
+              href="https://github.com/AakristG/resume_template"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Codebase
+              {"Code Base"}
             </a>
             .
           </p>

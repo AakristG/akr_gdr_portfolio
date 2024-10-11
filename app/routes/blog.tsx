@@ -12,7 +12,7 @@ export default function Blog() {
   return (
     <StaggerParent className="mx-auto my-0 w-full max-w-[42em]">
       <h1 className="mb-20 text-2xl font-bold leading-[1.3] md:text-4xl">
-        Blog Posts
+        Machine Learning and A.I. Blog Posts
       </h1>
 
       {posts.map((post, index) => {

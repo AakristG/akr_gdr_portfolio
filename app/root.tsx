@@ -25,26 +25,10 @@ import { getThemeSession } from "~/utils/theme.server";
 import Header from "~/components/Header";
 import Footer from "~/components/Footer";
 
-
-{/**if I directly plug in /tailwind.css into href, then all the css dissapers  */}
-import stylesheet from "../public/tailwind.css";
-
-
-// export const links: LinksFunction = () => {
-//   return [
-//     {
-//       rel: "stylesheet",
-//       href: stylesheet,
-//     },
-//   ];
-// };
-
-
-
 export const meta: MetaFunction = () => {
   return [
     { charSet: "utf-8" },
-    { title: "Aakrist's Personal Website" },
+    { title: "Aakrist Godar - Portfolio" },
     { name: "description", content: "A Personal Portfolio Aakrist Godar, where you can read his blog-posts." },
     { property: "og:title", content: "Aakrist's Personal Website" },
     { property: "og:description", content: "A Personal Portfolio Aakrist Godar, where you can read his blog-posts." },
