@@ -21,27 +21,44 @@ import {
   ThemeProvider,
   useTheme,
 } from "~/utils/theme-provider";
-import { getThemeSession } from "./utils/theme.server";
+import { getThemeSession } from "~/utils/theme.server";
 import Header from "~/components/Header";
 import Footer from "~/components/Footer";
 
-import stylesheet from "~/styles/tailwind.css";
 
-export const links: LinksFunction = () => [
-  { rel: "stylesheet", href: stylesheet },
-  { rel: "icon", type: "image/png", sizes: "196x196", href: "/favicon.png" },
-];
+{/**if I directly plug in /tailwind.css into href, then all the css dissapers  */}
+import stylesheet from "../public/tailwind.css";
 
-export const meta: MetaFunction = () => [
-  { charset: "utf-8" },
-  { title: "Aakrist's Personal Website" },
-  { "og:title": "Aakrist's Personal Website" },
-  { "og:description": "A Personal Portfolio Aakrist Godar, where you can read his blog-posts." },
-  { "og:url": "https://rajeshdavibbabu.com" },
-  { "twitter:card": "https://res.cloudinary.com/dtshavwni/image/upload/v1680013098/home-illustration-small_wdsuej.webp" },
-  { "og:image": "https://res.cloudinary.com/dtshavwni/image/upload/w_1200,h_630,c_scale/v1680013101/home-illustration_vfanz6.webp" },
-  { viewport: "width=device-width,initial-scale=1" },
-];
+
+// export const links: LinksFunction = () => {
+//   return [
+//     {
+//       rel: "stylesheet",
+//       href: stylesheet,
+//     },
+//   ];
+// };
+
+
+
+export const meta: MetaFunction = () => {
+  return [
+    { charSet: "utf-8" },
+    { title: "Aakrist's Personal Website" },
+    { name: "description", content: "A Personal Portfolio Aakrist Godar, where you can read his blog-posts." },
+    { property: "og:title", content: "Aakrist's Personal Website" },
+    { property: "og:description", content: "A Personal Portfolio Aakrist Godar, where you can read his blog-posts." },
+    { property: "og:url", content: "https://your-website-url.com" }, // Replace with your actual URL
+    { name: "twitter:card", content: "summary_large_image" }, // Example Twitter card type
+    { property: "og:image", content: "https://your-image-url.com/image.jpg" }, // Replace with your image URL
+    { name: "viewport", content: "width=device-width, initial-scale=1" },
+    { property: "og:type", content: "website" }, // Optional, can improve SEO
+    { name: "twitter:title", content: "Aakrist's Personal Website" }, // Optional
+    { name: "twitter:description", content: "A Personal Portfolio Aakrist Godar, where you can read his blog-posts." }, // Optional
+    { name: "twitter:image", content: "https://your-image-url.com/image.jpg" }, // Replace with your image URL
+  ];
+};
+
 
 
 export type LoaderData = {
@@ -67,7 +84,7 @@ function App() {
     <html lang="en" className={clsx(theme)}>
       <head>
         <Meta />
-        <Links />
+        <link rel="stylesheet" href="/public/tailwind.css"></link>
         <NonFlashOfWrongThemeEls ssrTheme={Boolean(data.theme)} />
       </head>
       <body className="bg-background text-text-primary dark:bg-d-background dark:text-d-text-primary">
@@ -81,7 +98,6 @@ function App() {
         </div>
         <ScrollRestoration />
         <Scripts />
-        <LiveReload />
       </body>
     </html>
   );

@@ -1,9 +1,12 @@
-/** @type {import('tailwindcss').Config} */
+import type {Config} from "tailwindcss";
 const colors = require("tailwindcss/colors");
 
 module.exports = {
   darkMode: "class",
-  content: ["./app/**/*.{js,jsx,ts,tsx}"],
+  content: [
+    "./app/**/*.{js,jsx,ts,tsx}",
+    "./app/**/*.html",
+  ],
   future: {
     hoverOnlyWhenSupported: true,
   },
@@ -39,9 +42,9 @@ module.exports = {
       },
     },
     fontFamily: {
-      serif: ['Merriweather", "serif'],
-      sans: ["Fira Sans", "sans-serif"],
+      serif: ['Merriweather', 'serif'],
+      sans: ['Fira Sans', 'sans-serif'],
     },
   },
   plugins: [require("@tailwindcss/typography")],
-};
+} satisfies Config;
