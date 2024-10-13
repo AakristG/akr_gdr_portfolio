@@ -22,7 +22,7 @@ export const Footer = () => {
           <br />
           Designed with{" "}
           <a href="https://remix.run/" target="_blank" rel="noopener noreferrer">
-            Remix, TailWind CSS, and React
+            Remix and React
           </a>
           .
         </span>

@@ -97,29 +97,38 @@ export default function Index() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              {"Code Base"}
+              {"GitHub"}
             </a>
             .
           </p>
         </StaggerChild>
       </StaggerParent>
 
-      <div className="relative my-0 flex h-[300px] w-[300px] items-center rounded-full border-text-secondary bg-gradient-to-r from-primary via-plants to-text-secondary p-1 text-center dark:border-d-text-secondary dark:to-d-text-secondary lg:h-[550px] lg:w-[550px] max-w-md:mb-[2rem]">
-        <picture className="flex aspect-square h-full w-full items-center rounded-full bg-background dark:bg-d-background ">
-          {isClient && isImageLoaded ? (
-            <SpringLoad>
-              <img
-                className="mb-[1em] w-full"
-                alt="Illustration of person reading a book"
-                src={imgSrc}
-              />
-            </SpringLoad>
-          ) : (
-            <div className="h-full w-full bg-gray-200 rounded-full"> {/* Placeholder div */}
-            </div>
-          )}
-        </picture>
+      <div className="relative my-0 flex items-center p-2 text-center lg:h-[550px] lg:w-[550px] max-w-md:mb-[2rem]">
+  <picture className="flex h-full w-full items-center bg-background dark:bg-d-background">
+    {isClient && isImageLoaded ? (
+      <SpringLoad>
+        <img
+          className="
+            mb-[1em] 
+            w-full 
+            object-cover 
+            scale-100  // No scaling on mobile
+            lg:scale-125 lg:hover:scale-150 // Scaling on large screens
+            transition-transform 
+            duration-500"
+          alt="Illustration of person reading a book"
+          src={imgSrc}
+        />
+      </SpringLoad>
+    ) : (
+      <div className="h-full w-full bg-gray-200 rounded-full">
+        {/* Placeholder div */}
       </div>
+    )}
+  </picture>
+</div>
+
     </div>
   );
 }

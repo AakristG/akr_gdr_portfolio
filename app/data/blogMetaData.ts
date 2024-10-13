@@ -9,9 +9,27 @@ export interface BlogList {
   }
   
   export const blogList: Array<BlogList> = [
+    // {
+    //   slug: "",
+    //   title: "Week 8: ",
+    //   publishDate: "October 11th 2024",
+    //   description:
+    //     "Add here",
+    //   pathName: "/blog/code-splitting-i18n",
+    //   readingTime: "5 min",
+    // },
     {
-      slug: "LLM-recreation",
-      title: "Week 6: Learning how to recreate a Large Language Model using PyTorch",
+      slug: "lavi-learning",
+      title: "Week 7: The art of LaVi-Bridge",
+      publishDate: "October 5th 2024",
+      description:
+        "Implementing and understanding how LaVi-Bridge operates and learning how to intergrate Llama 2 with custom data",
+      pathName: "/blog/code-splitting-i18n",
+      readingTime: "5 min",
+    },
+    {
+      slug: "LLM-stableDiff-recreation",
+      title: "Week 6: Large Language Models and Stable Diffusion recreation using PyTorch",
       publishDate: "September 25th 2024",
       description:
         "Applying the concepts of the Transformer Model to test and train Large Language Model",
@@ -40,7 +58,7 @@ export interface BlogList {
   
   export const imgSrcs = {
     mobile:
-      "https://res.cloudinary.com/dtshavwni/image/upload/v1680013098/home-illustration-small_wdsuej.webp",
+      "https://res.cloudinary.com/dhmibl6q3/image/upload/v1728787421/file_i0o7ym.png",
     desktop:
-      "https://res.cloudinary.com/dtshavwni/image/upload/v1680013101/home-illustration_vfanz6.webp",
+      "https://res.cloudinary.com/dhmibl6q3/image/upload/v1728787421/file_i0o7ym.png",
   };
