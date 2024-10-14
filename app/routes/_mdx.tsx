@@ -8,7 +8,7 @@ import StaggerParent from "~/components/StaggerParent";
 import StaggerChild from "~/components/StaggerChild";
 
 export const links: LinksFunction = () => {
-  return [{ rel: "stylesheet", href: styles }];
+  return [{ rel: "stylesheet", href: "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github-dark-dimmed.min.css" }];
 };
 
 const BlogLayout = () => {
