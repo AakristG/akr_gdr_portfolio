@@ -91,7 +91,7 @@ export default function Index() {
         <br />
         <StaggerChild>
           <p className="text-lg md:text-xl">
-            {"My template can be found in "} 
+            {"This template can be found in my "} 
             <a
               href="https://github.com/AakristG/resume_template"
               target="_blank"
@@ -117,7 +117,7 @@ export default function Index() {
             lg:scale-125 lg:hover:scale-150 // Scaling on large screens
             transition-transform 
             duration-500"
-          alt="Illustration of person reading a book"
+          alt="Aakrist_pic"
           src={imgSrc}
         />
       </SpringLoad>

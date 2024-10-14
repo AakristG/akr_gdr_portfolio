@@ -1,4 +1,5 @@
 import styles from "highlight.js/styles/github-dark-dimmed.css";
+
 import type { LinksFunction } from "@remix-run/node";
 import { NavLink, Outlet, useLocation } from "@remix-run/react";
 import { blogList } from "~/data/blogMetaData";
@@ -10,7 +11,7 @@ export const links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: styles }];
 };
 
-export default function BlogLayout() {
+const BlogLayout = () => {
   const location = useLocation();
   const pathname = location.pathname;
   // For now, we're just going to use the blogList data without loader.
@@ -49,3 +50,5 @@ export default function BlogLayout() {
     </StaggerParent>
   );
 }
+
+export default BlogLayout;
