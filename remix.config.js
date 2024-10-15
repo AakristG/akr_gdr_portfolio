@@ -1,6 +1,12 @@
 /** @type {import('@remix-run/dev').AppConfig} */
 module.exports = {
     ignoredRouteFiles: ["**/.*"],
+    appDirectory: "app",
+    assetsBuildDirectory: "public/build",
+    serverBuildDirectory: "build",
+    serverBuildPath: "build/index.js",
+    publicPath: "/build/",
+    serverBuildTarget: "vercel",
     future: {
       unstable_tailwind: true,
       v2_routeConvention: true,
@@ -14,11 +20,4 @@ module.exports = {
         rehypePlugins: [rehypeHighlight],
       };
     },
-    appDirectory: "app",
-    assetsBuildDirectory: "public/build",
-    serverBuildDirectory: "build",
-    serverBuildPath: "build/index.js",
-    publicPath: "/build/",
-    serverBuildTarget: "vercel",
-    mode: "spa",
   };
