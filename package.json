@@ -13,7 +13,6 @@
   "dependencies": {
     "@remix-run/node": "^2.13.1",
     "@remix-run/react": "^2.12.0",
-    "@remix-run/serve": "^2.12.0",
     "@tailwindcss/typography": "^0.5.15",
     "@vercel/analytics": "^1.3.1",
     "akr_gdr-portfolio": "file:",
@@ -30,8 +29,6 @@
   "devDependencies": {
     "@mdx-js/rollup": "^3.0.1",
     "@remix-run/dev": "^2.12.0",
-    "@remix-run/node": "^2.13.1",
-    "@remix-run/react": "^2.12.0",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.7.4",
