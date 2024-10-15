@@ -20,4 +20,5 @@ module.exports = {
     serverBuildPath: "build/index.js",
     publicPath: "/build/",
     serverBuildTarget: "vercel",
+    mode: "spa",
   };
