@@ -38,7 +38,7 @@ function App() {
     <html lang="en" className={clsx(theme)}>
       <head>
         <Meta />
-        <link rel="stylesheet" href="/public/tailwind.css" />
+        <link rel="stylesheet" href="/tailwind.css" />
         <NonFlashOfWrongThemeEls ssrTheme={false} />
       </head>
       <body className="bg-background text-text-primary dark:bg-d-background dark:text-d-text-primary">
