@@ -19,6 +19,7 @@ import type { Theme } from "~/utils/theme-provider";
 import {
   NonFlashOfWrongThemeEls,
   ThemeProvider,
+  useTheme,
 } from "~/utils/theme-provider";
 import { getThemeSession } from "~/utils/theme.server";
 import Header from "~/components/Header";
@@ -42,6 +43,8 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+
+
 export type LoaderData = {
   theme: Theme | null;
 };
@@ -56,31 +59,40 @@ export const loader: LoaderFunction = async ({ request }) => {
   return data;
 };
 
+function App() {
+  const data = useLoaderData<LoaderData>();
+
+  const [theme] = useTheme();
+
+  return (
+    <html lang="en" className={clsx(theme)}>
+      <head>
+        <Meta />
+        <link rel="stylesheet" href="/public/tailwind.css"></link>
+        <NonFlashOfWrongThemeEls ssrTheme={Boolean(data.theme)} />
+      </head>
+      <body className="bg-background text-text-primary dark:bg-d-background dark:text-d-text-primary">
+        <Analytics />
+        <div className="flex min-h-screen flex-col">
+          <Header />
+          <main className="relative mx-auto my-0 box-border flex w-full max-w-7xl flex-[1] flex-grow flex-col py-[1em] px-[2em]">
+            <Outlet />
+          </main>
+          <Footer />
+        </div>
+        <ScrollRestoration />
+        <Scripts />
+      </body>
+    </html>
+  );
+}
+
 export default function AppWithProviders() {
   const data = useLoaderData<LoaderData>();
 
   return (
     <ThemeProvider specifiedTheme={data.theme}>
-      <html lang="en" className={clsx(data.theme)}>
-        <head>
-          <Meta />
-          <link rel="stylesheet" href="/public/tailwind.css"></link>
-          <NonFlashOfWrongThemeEls ssrTheme={Boolean(data.theme)} />
-        </head>
-        <body className="bg-background text-text-primary dark:bg-d-background dark:text-d-text-primary">
-          <Analytics />
-          <div className="flex min-h-screen flex-col">
-            <Header />
-            <main className="relative mx-auto my-0 box-border flex w-full max-w-7xl flex-[1] flex-grow flex-col py-[1em] px-[2em]">
-              <Outlet />
-            </main>
-            <Footer />
-          </div>
-          <ScrollRestoration />
-          <Scripts />
-          <LiveReload />
-        </body>
-      </html>
+      <App />
     </ThemeProvider>
   );
 }
