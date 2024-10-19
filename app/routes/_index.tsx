@@ -13,7 +13,7 @@ export default function Index() {
   const [imgSrc, setImgSrc] = useState("");
 
   useEffect(() => {
-    setIsClient(true); // Ensures that client-side rendering starts.
+    setIsClient(true);
     const img = new Image();
     const imgSrc = isMobile ? imgSrcs.mobile : imgSrcs.desktop;
 
@@ -25,7 +25,6 @@ export default function Index() {
   }, []);
 
   if (!isClient) {
-    // Prevent rendering browser-dependent logic until hydration completes.
     return <div>Loading...</div>;
   }
 
@@ -38,11 +37,11 @@ export default function Index() {
         <StaggerChild>
           <div className="text-lg md:text-xl">
             <div className="animated-typing">
-              <ReactTyped
+              <ReactTyped 
                 strings={[
                   "An Aspiring Software Engineer",
                   "Machine Learning Researcher",
-                  "Back-End and Front-End Developer",
+                  "Full Stack Developer",
                   "Computer Engineer",
                   "Passionate about Robotics",
                 ]}
