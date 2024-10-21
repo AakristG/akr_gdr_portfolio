@@ -19,7 +19,7 @@ export interface BlogList {
     //   readingTime: "5 min",
     // },
     {
-      slug: "lavi-learning",
+      slug: "week7",
       title: "Week 7: The art of LaVi-Bridge",
       publishDate: "October 5th 2024",
       description:
@@ -28,7 +28,7 @@ export interface BlogList {
       readingTime: "5 min",
     },
     {
-      slug: "LLM-stableDiff-recreation",
+      slug: "week6",
       title: "Week 6: Large Language Models and Stable Diffusion recreation using PyTorch",
       publishDate: "September 25th 2024",
       description:
@@ -37,7 +37,7 @@ export interface BlogList {
       readingTime: "5 min",
     },
     {
-      slug: "transformer-model",
+      slug: "week5",
       title: "Week 5: Transformer Model: the process, the thoughts, and the attention",
       publishDate: "September 18th 2024",
       description:
@@ -46,7 +46,7 @@ export interface BlogList {
       readingTime: "5 min",
     },
     {
-      slug: "new-beginnings",
+      slug: "week1",
       title: "Week 1-4: Introduction to Machine Learning with Linear Algebra, Calculus, Probability, and PyTorch",
       publishDate: "August 19th 2024",
       description:
