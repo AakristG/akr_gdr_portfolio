@@ -29,8 +29,7 @@
     "react-dom": "^18.3.1",
     "react-typed": "^2.0.12",
     "remark-frontmatter": "^5.0.0",
-    "remark-mdx-frontmatter": "^5.0.0",
-    "vite-plugin-mdx": "^3.6.1"
+    "remark-mdx-frontmatter": "^5.0.0"
   },
   "devDependencies": {
     "@remix-run/dev": "^2.12.0",
