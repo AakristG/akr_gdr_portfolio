@@ -20,14 +20,9 @@ export const meta: MetaFunction = () => {
     { name: "description", content: "A Personal Portfolio Aakrist Godar, where you can read his blog-posts." },
     { property: "og:title", content: "Aakrist's Personal Website" },
     { property: "og:description", content: "A Personal Portfolio Aakrist Godar, where you can read his blog-posts." },
-    { property: "og:url", content: "https://your-website-url.com" },
-    { name: "twitter:card", content: "summary_large_image" },
-    { property: "og:image", content: "https://your-image-url.com/image.jpg" },
+    { property: "og:url", content: "https://akr-gdr-portfolio-2d0oh67kw-aakrist-godars-projects.vercel.app/" },
     { name: "viewport", content: "width=device-width, initial-scale=1" },
     { property: "og:type", content: "website" },
-    { name: "twitter:title", content: "Aakrist's Personal Website" },
-    { name: "twitter:description", content: "A Personal Portfolio Aakrist Godar, where you can read his blog-posts." },
-    { name: "twitter:image", content: "https://your-image-url.com/image.jpg" },
   ];
 };
 
@@ -39,6 +34,8 @@ function App() {
       <head>
         <Meta />
         <link rel="stylesheet" href="/tailwind.css" />
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap" rel="stylesheet" />
+        {/* <link rel="stylesheet" href="/styles/github-dark-dimmed.css" /> */}
         <NonFlashOfWrongThemeEls ssrTheme={false} />
       </head>
       <body className="bg-background text-text-primary dark:bg-d-background dark:text-d-text-primary">

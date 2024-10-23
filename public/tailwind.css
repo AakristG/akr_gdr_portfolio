@@ -1579,6 +1579,10 @@ hr {
   font-family: Fira Sans, sans-serif;
 }
 
+.font-roboto {
+  font-family: Sans, san-serif;
+}
+
 .text-2xl {
   font-size: 1.5rem;
   line-height: 2rem;

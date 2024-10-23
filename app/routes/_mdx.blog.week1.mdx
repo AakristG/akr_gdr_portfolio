@@ -1,10 +1,176 @@
 ---
 meta:
-  - title: "Hello World"
-  - layout: "post"
+  title: Introduction to Machine Learning and PyTorch
+  description: Dedicated to learning how to building matrices, familiarizing with PyTorch, and learning more about applicable math concepts
 ---
 
-export const sitemap = "https://akr-gdr-portfolio.vercel.app//blog/sitemap.xml";
 
-User-agent: *
-Allow: /
+![Machine](https://www.fsm.ac.in/blog/wp-content/uploads/2022/08/ml-e1610553826718.jpg) **Disclaimer**: This article expects you to be already aware of basic concepts of Python and some PyTorch.
+
+Introduction to Machine Learning: Do you ever read about a brand new topic and wonder where it comes from, so you go down a deep rabbit hole and realize you have just spent hours finding more information about this topic.
+ 
+Well this happened to me a few months ago with my discovery of artificial intelligence (A.I.) and its properties. I was super intrigued with this idea and I decided that I would like a career involving working with A.I. 
+because it will impact the future on a global scale. So I spent hours upon hours figuring out how this new development functions and how people can make new technology that affects millions with this discovery.
+
+Therefore, in today's blog I am going to be going over what I learned about Machine Learning: the what, how, why, and where.
+
+## 1\. What is Machine Learning?
+
+Machine Learning (ML) is a branch of artificial intelligence (AI) that focuses on the development of  algorithms, functions, and models that learn and improve from data provided by the user.
+The user feeds the data into a system, which identifies patterns and makes predictions based on that data. So over time, as the model is being used more, the system gets extremely good at recognizing trends and starts printing out better and more correct outputs.
+
+## 2\. Why is Machine Learning Important?
+
+If you have been keeping a close eye on today's market, machine learning plays a crucial role in almost every single industry. It can be extremely business orientated since it can automate process, enhances customer experience with their product, 
+and learn from data that humans would have to spend a lot of time processing. 
+
+### Real World Applications 
+
+1. Finance: ML algorithms can analyze risk, trade, and even fraud detection in the financial sector. Banks use this to track unusual activities and trends in their client's banking or credit history to identify fraud.
+2. Retail: Many e-commerce companies use ML to make customer experience better by suggesting related products and recommendations based on the customer's preferences.
+3. Healthcare: ML can analyze large amounts of medical data in a very short time, predict outcomes, and make treatment plans for patients. Recently, ML models have been used to predict diseases by examining patterns in patient’s records. 
+4. Transportation: In terms of autonomous vehicles, ML is utilized to interpret sensor data, make real-time driving decisions, and even drive the vehicle.
+
+## 3\. How does Machine Learning Work?
+
+ML is basically a bunch of algorithms that learns from data that is being fed to it. 
+
+Here is a basic structure of it 
+-  Data Collection: Large datasets relevant to the problem
+
+-  Data Preprocessing: Organizing the data for analysis 
+
+-  Model Selection: Choosing the right algorithm like neural network, regression, and decision trees
+
+-  Training: Feeding the algorithm with data and it begins learning patterns
+
+-  Testing and Validation: Evaluating the model’s performance with more data
+
+### Sample code with sklearn
+
+```js
+
+# A simple pokemon csv file example
+
+import numpy as np
+import pandas as pd
+from scipy.optimize import minimize
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+from utils.plotting import *
+
+# Optimize linear regression
+df = (pd.read_csv("data/pokemon.csv", usecols=['name', 'defense', 'attack'], index_col=0)
+        .head(10)
+        .sort_values(by='defense')
+        .reset_index()
+     )
+x = df['defense']
+y = df['attack']
+df
+
+slopes = np.arange(0.4, 1.65, 0.05)
+mse = pd.DataFrame({"slope": slopes,
+                    "MSE": [mean_squared_error(y, m * x) for m in slopes]})
+mse
+```
+> Note: This is from a random github repo. Checkout the [code here](https://github.com/TomasBeuzen/deep-learning-with-pytorch/blob/main/chapters/chapter1_gradient-descent.ipynb).
+
+### Demo with PyTorch
+
+Here is a sample code of a VAE Attention Block in a diffusor class.
+
+First import torch, its dependencies, and SelfAttention class. This is required to use PyTorch and its methods with our code.
+```js
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from attention import SelfAttention
+```
+
+Next, it is important to know how to create a class in PyTorch. Every PyTorch class must have a parameter of nn.Module with a constructor method "def __init_()" and a forward() method. 
+In this example, I created a VAE_AttenionBlock class with a parameter of nn.Module with the two required methods. 
+
+```js
+class VAE_AttentionBlock(nn.Module):
+    def __init_(self, channels: int):{
+      #do something
+    }
+        
+    def forward(): {
+      #do something
+    }
+```
+
+Then we define the class constructor that initializes group normalization and self-attention components. This structure improves training stability and enhances feature. We can now start adding the code into the constructor.
+```js
+
+#Takes the parameter self and channels
+def __init_(self, channels: int):      
+  #This ensures that the parent class's constructor (from which the current class inherits) is properly called and initialized.
+  super().__init__()
+
+  #Group Normalization is used as a normalization technique. It divides the input channels into groups (32 groups here) and normalizes each group independently. 
+  self.groupnorm = nn.GroupNorm(32, channels) # It helps reduce internal covariate shift, stabilizing and speeding up training, especially for mini-batches that are too small to use BatchNorm effectively.
+
+  #This initializes a self-attention mechanism, that allows the model to focus on important parts of the input data.
+  self.attention = SelfAttention(1, channels)
+        
+```
+
+Finally we can define our forward method. In this way, we can reshape the tensor for self attenion and connect it with the residual.
+```js
+def forward(self, x: torch.Tensor) -> torch.Tensor:
+
+        # (Batch_Size, Features, Height, Width) - We are tracking the parameters
+        
+        residue = x
+        
+        n,c,h, w = x.shape
+        
+        # (Batch_Size, Features, Height, Width) ->  (Batch_Size, Features, Height * Width)
+        x = x.view(n,c,h * w)
+        
+        # (Batch_Size, Features, Height, Width) ->  (Batch_Size, Features, Height * Width, Features)
+        x = x.transpose(-1, -2)
+        
+        # (Batch_Size, Features, Height, Width) ->  (Batch_Size, Features, Height * Width, Features)
+        x = self.attention(x)
+        
+        # (Batch_Size, Features, Height, Width) ->  (Batch_Size, Features, Height * Width)
+        x = x.transpose(-1, -2)
+        
+        # (Batch_Size, Features, Height, Width) ->  (Batch_Size, Features, Height, Width)
+        x = x.view((n,c,h,w))
+        
+        x += residue
+        
+        return x
+```
+
+> Note: PyTorch is a popular Python framework that is used for neural networks. Find out more about [PyTorch](https://www.nvidia.com/en-us/glossary/pytorch/) here
+
+Congralutions! You just wrote a simple code in Python for a diffusor class using PyTorch. Isn't it easier than it looks?
+
+## 4\. The future of Machine Learning
+
+![picture](https://media.licdn.com/dms/image/C5612AQHNGSwLT4msMQ/article-cover_image-shrink_720_1280/0/1597330250387?e=2147483647&v=beta&t=rAPh1StZxZs0puYjeySkARweErAI0PDRNBLVYmax_Sg)
+
+As technology continues to evolve, machine learning will be influencing more of our daily lives. With advancements in computing, data, and 
+algorithm development, the potential for machine learning applications to enhance businesses and healthcare is limitless. I wouldn't be surprised if we have self driving flying cars with perfect traffic by 2070. 
+
+## 5\. Where can you learn Machine Learning
+
+ML can be learned through a variety of resources depending on your learning style and experience. For beginners Coursera, edX, 
+and Udacity offer good  courses including programs by Stanford and MIT. If you prefer hands-on coding, Kaggle 
+and Google Colab are good for practical challenges and datasets to practice with real-world problems. YouTube channels such as Sentdex and 3Blue1Brown are also great for this topic!
+
+## 6\. Conclusion
+
+Machine Learning is an exciting and rapidly growing field with endless possibilities like the fieds I mentioned in my article. If you want to go into Machine Learning, you should definitely begin with **PyTorch** 
+and neural networks. I strongly suggest you to know at least some details about how A.I. works because it is the future and it can be extremely rewarding!
+
+```js
+
+```

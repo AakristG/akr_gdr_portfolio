@@ -44,6 +44,7 @@ module.exports = {
     fontFamily: {
       serif: ['Merriweather', 'serif'],
       sans: ['Fira Sans', 'sans-serif'],
+      roboto: ['Roboto', 'sans-serif'],
     },
   },
   plugins: [require("@tailwindcss/typography")],

@@ -17,16 +17,6 @@ const Sitemap: FC = () => {
         <priority>1.0</priority>
       </url>
       <url>
-        <loc>https://akr-gdr-portfolio.vercel.app/blog/code-splitting-i18n</loc>
-        <lastmod>2023-03-31T19:31:59+01:00</lastmod>
-        <priority>0.8</priority>
-      </url>
-      <url>
-        <loc>https://akr-gdr-portfolio.vercel.app/blog/modular-architecture-react-ts</loc>
-        <lastmod>2023-03-31T19:31:59+01:00</lastmod>
-        <priority>0.8</priority>
-      </url>
-      <url>
         <loc>https://akr-gdr-portfolio.vercel.app/blog/week1</loc>
         <lastmod>2023-03-31T19:31:59+01:00</lastmod>
         <priority>0.8</priority>
