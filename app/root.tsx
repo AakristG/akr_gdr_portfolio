@@ -9,17 +9,28 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 import clsx from "clsx";
-import { ThemeProvider, useTheme, NonFlashOfWrongThemeEls } from "~/utils/theme-provider";
+import {
+  ThemeProvider,
+  useTheme,
+  NonFlashOfWrongThemeEls,
+} from "~/utils/theme-provider";
 import Header from "~/components/Header";
 import Footer from "~/components/Footer";
+import { useEffect, useState } from "react";
 
 export const meta: MetaFunction = () => {
   return [
     { charSet: "utf-8" },
     { title: "Aakrist Godar - Portfolio" },
-    { name: "description", content: "A Personal Portfolio Aakrist Godar, where you can read his blog-posts." },
+    {
+      name: "description",
+      content: "A Personal Portfolio Aakrist Godar, where you can read his blog-posts.",
+    },
     { property: "og:title", content: "Aakrist's Personal Website" },
-    { property: "og:description", content: "A Personal Portfolio Aakrist Godar, where you can read his blog-posts." },
+    {
+      property: "og:description",
+      content: "A Personal Portfolio Aakrist Godar, where you can read his blog-posts.",
+    },
     { property: "og:url", content: "https://akr-gdr-portfolio-2d0oh67kw-aakrist-godars-projects.vercel.app/" },
     { name: "viewport", content: "width=device-width, initial-scale=1" },
     { property: "og:type", content: "website" },
@@ -28,15 +39,30 @@ export const meta: MetaFunction = () => {
 
 function App() {
   const [theme] = useTheme();
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Ensure the component is fully mounted before applying visibility
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   return (
-    <html lang="en" className={clsx(theme)}>
+    <html
+      lang="en"
+      className={clsx(theme, { "invisible": !isMounted })} // Hide until mount
+    >
       <head>
         <Meta />
+        <link rel="preload" href="/tailwind.css" as="style" />
         <link rel="stylesheet" href="/tailwind.css" />
-        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap" rel="stylesheet" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap"
+          rel="stylesheet"
+        />
+        {/* Optional GitHub CSS */}
         {/* <link rel="stylesheet" href="/styles/github-dark-dimmed.css" /> */}
         <NonFlashOfWrongThemeEls ssrTheme={false} />
+        <Links />
       </head>
       <body className="bg-background text-text-primary dark:bg-d-background dark:text-d-text-primary">
         <div className="flex min-h-screen flex-col">
