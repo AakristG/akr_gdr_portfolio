@@ -53,7 +53,7 @@ function App() {
     >
       <head>
         <Meta />
-        <link rel="preload" href="/tailwind.css" as="style" />
+        <link rel="preload" href="/tailwind.css?v=${Date.now()}" as="style" />
         <link rel="stylesheet" href="/tailwind.css" />
         <link
           href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap"
