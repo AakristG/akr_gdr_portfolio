@@ -1,8 +1,148 @@
 ---
 meta:
-  title: Use cases for Array vs Set vs Map vs Object
-  description: Different data-structures and their real-time use cases in Javascript (ES6/ES7).
-
+  title: Transformer Model the process, the thoughts, and the attention
+  description: Reading and understanding the aspects of the Transformer Model from Google Brain
 ---
+Implementing code without knowing the foundation behind all of the concepts would be an extremely daunting task, so today I will be going over the Transformer model.
 
-Hello
+
+**Disclaimer**: This article expects you to know the basis concepts of Machine Learning and knowing what the PyTorch methods do (referenced in the API)
+
+
+**TLDR;** - Learn the model directly from [here](https://arxiv.org/pdf/1706.03762)
+
+
+![Machine](https://7wdata.be/wp-content/uploads/2016/10/google-brain-researchers-teach-ai-to-make-its-own-encryption.png)
+_Google Brain_
+
+## Introduction
+ The Transformer model is a powerful tool in natural language processing that has changed translation, summarization, and even
+ generating text.  It was introduced in a 2017 paper titled "Attention is All You Need," by researchers working in Google Brain and has become a very influential paper.
+ Many GPTs and models today such as Chat GPT and Gemini are all developed on the concept behind this model.
+
+## Why Transformers?
+
+![Model](https://viso.ai/wp-content/uploads/2021/09/vision-transformer-vit.png)
+_Where it can be used_
+
+Before Transformers, many models relied on sequence to process one word at a time. 
+This was extremely dull and not the best practice as the context of words would make no sense because that were far apart in a sentence. 
+On the other hand, Transformer handles all words in a sentence simultaneously, which allows it to capture relationships between distant words much better.
+
+Now that we know a brief background behind this model, what are and how does the main architecture of this model function together?
+
+## Key Components
+
+The Transformer model consists of two main parts: Encoder and Decoder
+
+> Note: Last article, I briefly went over a sub class in the Decoder class
+
+### 1\. Encoder
+
+![Encoder](https://kikaben.com/transformers-encoder-decoder/images/encoder-layer-norm.png)
+_Transformer's Encoder_
+
+The Encoder is made up of a stack of identical layers (usually 6). Each layer has two main components listed below.
+
+- **Multi-Head Self-Attention Mechanism:** 
+  - #### What is does:  
+    This mechanism allows the model to focus on different words in the input sentence at the same time. 
+    For example, in the sentence "The cat sat on the mat," it can learn to associate "cat" with "sat" and "mat," understanding their relationships and using them in the future when it is generating text.
+  - #### How it works: 
+      It uses the concept of attention scores to weigh how much focus to give each word in the context of other words. This is done through a series of mathematical operations on the input embeddings (word representations).
+
+- **Feed-Forward Neural Network:**
+  - #### What is does:
+    After the attention mechanism processes the input, it passes the information through a feed-forward neural network for further processing.
+  - #### How it works:
+    This consists of two linear transformations with a ReLU activation in between, which helps capture complex relationships in the data.
+
+### 2\. Decoder
+
+![Decoder](https://www.researchgate.net/publication/357410305/figure/fig1/AS:11431281110736007@1672715425555/Transformer-model-architecture-this-figures-left-and-right-halves-sketch-how-the.png)
+_Transformer's Decoder_
+
+The Decoder is similar to the Encoder but includes an additional layer for handling the output generation. It also has a stack of identical layers (usually 6), with the following components listed below.
+
+- **Masked Multi-Head Self-Attention Mechanism:** 
+  - #### What is does: 
+    This mechanism prevents the model from seeing future words when generating a sequence. 
+    For instance, when predicting the next word in a sentence, it can only use previously generated words.
+
+  - #### How it works:
+     The masking ensures that the attention only considers words up to the current position in the output sequence.
+
+- **Multi-Head Attention over Encoder Output:** 
+  - #### What is does:
+    This allows the decoder to focus on different parts of the encoder's output. It helps in using the context learned from the input when generating the output.
+  - #### How it works:
+    Similar to the encoder's attention mechanism, it computes attention scores between the current decoder inputs and the outputs from the encoder.
+
+- **Feed-Forward Neural Network:**
+  - #### What is does: 
+    This part functions the same as in the encoder, processing the information further.
+
+
+### 3\. What is used in both
+
+![Layer](https://miro.medium.com/v2/resize:fit:1400/1*P5PFt71JaYwAJzEDpDkKOQ.png)
+_Layer Normalization Visual_
+
+Each encoder and decoder layer also has layer normalization and residual connections. 
+Layer normalization helps stabilize training, while residual connections ensure that the original input can still be accessed by the next layer, helping with the flow of information.
+
+- **Layer Normalization:**
+  - #### What is does: 
+    Layer normalization helps keep the training process stable. Think of it like making sure every ingredient in a recipe is in the right proportion—too much of one thing 
+    could ruin the dish! In deep learning, without normalization, the values flowing through the network could get too big or too small, slowing down training or leading to unpredictable behavior. 
+    Layer normalization ensures that the model stays on track by scaling the outputs to a consistent range.
+
+  - #### How it works:
+    At each step, the model looks at all the numbers (values) flowing through the layer and finds their mean (average) and variance 
+    (how spread out the numbers are). It then adjusts the values so they align with a standard range (zero mean and unit variance). 
+    This ensures that no matter how complex the data gets, every part of the model receives inputs that are balanced and easy to handle. 
+    This step helps the model learn faster and more effectively without wild fluctuations in its training.
+
+- **Residual Connections:**
+  - #### What is does: 
+    Residual connections help the model avoid the problem of forgetting important information as it goes deeper through layers. 
+    Imagine building a tower: if every new layer adds complexity, it’s easy to lose sight of the original structure. Residual connections act like a 
+    shortcut—they ensure that the input to each layer is also passed directly to the next layer. 
+    This way, the model keeps both the original and newly learned information, helping it perform better.
+
+  - #### How it works:
+    Normally, data goes through each layer and is transformed in complex ways. But with residual connections, the model adds
+    the original input back to the transformed output at the end of each layer. This "skip connection" ensures that if a layer struggles to learn useful patterns, 
+    the original information is still available for future layers to build on. 
+    It’s like adding a backup system—if the current layer doesn’t fully capture the right details, the next one can still access the earlier, unmodified input.
+
+### 4\. Additional Components
+
+- **Positional Encoding:**
+  - #### What is does:  
+    Since Transformers do not have a built-in sense of the order of words (like recurrent neural networks), 
+    positional encodings are added to the input embeddings to provide information about the position of each word in the sentence.
+
+  - #### How it works:
+    These encodings use sine and cosine functions to create unique values for each position.
+
+- **Output Layer:**
+  - #### What is does: 
+    Finally, the decoder’s output goes through a linear transformation followed by a softmax function to predict the probability of each word in the vocabulary, which is how the model generates its output.
+
+
+## Summary
+
+In summary, the Transformer model is a powerful architecture for processing sequences. It uses encoders and decoders stacked in layers with self-attention, 
+feed-forward networks, and positional encodings, the Transformer can understand complex relationships within the data, which is why it is able to make significant advancements
+ in tasks like language translation and text generation.
+
+This combination of components makes the Transformer not just faster but also more effective in understanding and generating language,
+ which is why it has become the foundation for many state-of-the-art models, including BERT and GPT.
+
+With this article, I hope you understand the Transformer model!!
+
+Here is a [quick video](https://www.youtube.com/watch?v=SZorAJ4I-sA) that will help you understand this better
+
+
+

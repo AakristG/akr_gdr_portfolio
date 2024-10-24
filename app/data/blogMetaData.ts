@@ -36,19 +36,19 @@ export interface BlogList {
     //   pathName: "/blog/week6",
     //   readingTime: "5 min",
     // },
-    // {
-    //   slug: "week5",
-    //   title: "Week 5: Transformer Model: the process, the thoughts, and the attention",
-    //   publishDate: "September 18th 2024",
-    //   description:
-    //     "Reading and understanding the aspects of the Transformer Model from Google Brain",
-    //   pathName: "/blog/week5",
-    //   readingTime: "5 min",
-    // },
+    {
+      slug: "week5",
+      title: "Week 5: Transformer Model: the process, the thoughts, and the attention",
+      publishDate: "October 18th 2024",/* Original was September 11th, 2024 */
+      description:
+        "Reading and understanding the aspects of the Transformer Model from Google Brain",
+      pathName: "/blog/week5",
+      readingTime: "8 min",
+    },
     {
       slug: "week1",
       title: "Week 1-4: Introduction to Machine Learning and PyTorch",
-      publishDate: "October 22th 2024", /* Original was August 19th, 2024*/
+      publishDate: "October 5th 2024", /* Original was August 19th, 2024*/
       description:
         "Dedicated to learning how to building matrices, familiarizing with PyTorch, and learning more about applicable math concepts",
       pathName: "/blog/week1",
