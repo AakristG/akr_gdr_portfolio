@@ -27,15 +27,15 @@ export interface BlogList {
     //   pathName: "/blog/week7",
     //   readingTime: "5 min",
     // },
-    {
-      slug: "week6",
-      title: "Image Generation through Stable Diffusion using PyTorch",
-      publishDate: "September 30th 2024",
-      description:
-        "Applying the concepts of the Transformer Model to test and train Stable Diffusion model",
-      pathName: "/blog/week6",
-      readingTime: "10 min",
-    },
+    // {
+    //   slug: "week6",
+    //   title: "Image Generation through Stable Diffusion using PyTorch",
+    //   publishDate: "September 30th 2024",
+    //   description:
+    //     "Applying the concepts of the Transformer Model to test and train Stable Diffusion model",
+    //   pathName: "/blog/week6",
+    //   readingTime: "10 min",
+    // },
     {
       slug: "week5",
       title: "Transformer Model: the process, the thoughts, and the attention",
