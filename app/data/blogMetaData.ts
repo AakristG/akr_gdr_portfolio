@@ -20,22 +20,22 @@ export interface BlogList {
     // },
     // {
     //   slug: "week7",
-    //   title: "Week 7: The art of LaVi-Bridge",
+    //   title: "The art of LaVi-Bridge",
     //   publishDate: "October 5th 2024",
     //   description:
     //     "Implementing and understanding how LaVi-Bridge operates and learning how to intergrate Llama 2 with custom data",
     //   pathName: "/blog/week7",
     //   readingTime: "5 min",
     // },
-    // {
-    //   slug: "week6",
-    //   title: "Week 6: Large Language Models and Stable Diffusion recreation using PyTorch",
-    //   publishDate: "September 25th 2024",
-    //   description:
-    //     "Applying the concepts of the Transformer Model to test and train Large Language Model",
-    //   pathName: "/blog/week6",
-    //   readingTime: "5 min",
-    // },
+    {
+      slug: "week6",
+      title: "Image Generation through Stable Diffusion using PyTorch",
+      publishDate: "September 30th 2024",
+      description:
+        "Applying the concepts of the Transformer Model to test and train Stable Diffusion model",
+      pathName: "/blog/week6",
+      readingTime: "10 min",
+    },
     {
       slug: "week5",
       title: "Transformer Model: the process, the thoughts, and the attention",
@@ -48,7 +48,7 @@ export interface BlogList {
     {
       slug: "week1",
       title: "Introduction to Machine Learning and PyTorch",
-      publishDate: "August 19th 2024", /* Original was August 19th, 2024*/
+      publishDate: "August 24th 2024", /* Original was August 19th, 2024*/
       description:
         "Dedicated to learning how to building matrices, familiarizing with PyTorch, and learning more about applicable math concepts",
       pathName: "/blog/week1",

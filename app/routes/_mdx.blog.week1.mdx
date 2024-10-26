@@ -46,9 +46,9 @@ Here is a basic structure of it
 
 -  Testing and Validation: Evaluating the model’s performance with more data
 
-### Sample code with sklearn
+### Sample code with scikit-learn
 
-```js
+```python
 
 # A simple pokemon csv file example
 
@@ -82,7 +82,7 @@ mse
 Here is a sample code of a VAE Attention Block in a diffusor class.
 
 First import torch, its dependencies, and SelfAttention class. This is required to use PyTorch and its methods with our code.
-```js
+```python
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -92,7 +92,7 @@ from attention import SelfAttention
 Next, it is important to know how to create a class in PyTorch. Every PyTorch class must have a parameter of nn.Module with a constructor method "def __init_()" and a forward() method. 
 In this example, I created a VAE_AttenionBlock class with a parameter of nn.Module with the two required methods. 
 
-```js
+```python
 class VAE_AttentionBlock(nn.Module):
     def __init_(self, channels: int):{
       #do something
@@ -104,7 +104,7 @@ class VAE_AttentionBlock(nn.Module):
 ```
 
 Then we define the class constructor that initializes group normalization and self-attention components. This structure improves training stability and enhances feature. We can now start adding the code into the constructor.
-```js
+```python
 
 #Takes the parameter self and channels
 def __init_(self, channels: int):      
@@ -120,7 +120,7 @@ def __init_(self, channels: int):
 ```
 
 Finally we can define our forward method. In this way, we can reshape the tensor for self attenion and connect it with the residual.
-```js
+```python
 def forward(self, x: torch.Tensor) -> torch.Tensor:
 
         # (Batch_Size, Features, Height, Width) - We are tracking the parameters
@@ -170,7 +170,3 @@ and Google Colab are good for practical challenges and datasets to practice with
 
 Machine Learning is an exciting and rapidly growing field with endless possibilities like the fieds I mentioned in my article. If you want to go into Machine Learning, you should definitely begin with **PyTorch** 
 and neural networks. I strongly suggest you to know at least some details about how A.I. works because it is the future and it can be extremely rewarding!
-
-```js
-
-```

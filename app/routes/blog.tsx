@@ -1,5 +1,6 @@
 import { Link } from "@remix-run/react";
 import { blogList } from "~/data/blogMetaData";
+import React from 'react';
 
 import StaggerParent from "~/components/StaggerParent";
 import StaggerChild from "~/components/StaggerChild";

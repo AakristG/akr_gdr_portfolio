@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { isMobile } from "react-device-detect";
+import React from 'react';
 
 export interface StaggerChildProps {
   children: React.ReactNode;
