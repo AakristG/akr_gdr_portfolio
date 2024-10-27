@@ -39,7 +39,7 @@ const Sitemap: FC = () => {
     </urlset>
   `;
 
-  return (
+  return ( 
     <div>
       <pre>{content}</pre>
     </div>
