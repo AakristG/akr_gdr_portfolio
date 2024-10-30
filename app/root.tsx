@@ -41,6 +41,9 @@ function App() {
   const [theme] = useTheme();
   const [isMounted, setIsMounted] = useState(false);
 
+  //Update the css immediately
+  const cssUpdate = Date.now();
+
   // Ensure the component is fully mounted before applying visibility
   useEffect(() => {
     setIsMounted(true);
@@ -49,12 +52,17 @@ function App() {
   return (
     <html
       lang="en"
-      className={clsx(theme, { "invisible": !isMounted })} // Hide until mount
+      className={clsx(theme, { "invisible": !isMounted })} 
     >
       <head>
         <Meta />
-        <link rel="preload" href="/tailwind.css?v=${Date.now()}" as="style" />
-        <link rel="stylesheet" href="/tailwind.css" />
+        <link rel="preload" href={'/tailwind.css?v=${cssVersion}'} as="style" />
+        <link rel="stylesheet" href={'/tailwind.css?v=${cssVersion}'} />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap"
+          rel="stylesheet"
+          as="style"
+        />
         <link
           href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap"
           rel="stylesheet"

@@ -1,23 +1,1078 @@
 ---
 meta:
-  title: Transformer Model the process, the thoughts, and the attention
-  description: Reading and understanding the aspects of the Transformer Model from Google Brain
+  title: Image Generation through Stable Diffusion using PyTorch
+  description: Applying the concepts of the Transformer Model to test and train Stable Diffusion model
 ---
 
-Implementing code without knowing the foundation behind all of concepts would be an extremely daunting task, so today I will be going over the Transformer model. 
+Have you wondered how image generation is created? 
 
+Well in this blog, I will be going over the fundamentals of building a Transformer model with PyTorch. My last blog goes over the Transformer Model, so make sure you check that out too!
 
-**Disclaimer**: This article expects you to know the basis concepts of Machine Learning and knowing what the PyTorch methods do (referenced in the API)
-
+**Disclaimer**: This article expects you to know the basic concepts of Machine Learning and what the PyTorch methods do (referenced in the API). ❗ This is a lot of reading ❗ 
 
 **TLDR;** - Get directly into coding [here](https://github.com/AakristG/Stabusion_Bot)
 
 
-![Machine](https://7wdata.be/wp-content/uploads/2016/10/google-brain-researchers-teach-ai-to-make-its-own-encryption.png)
-
-
 **Introduction:**
 
+In this article, we will explore various classes used for image generation through Stable Diffusion using PyTorch. Each class plays a crucial role in the functioning of the model, enabling us to efficiently generate images from textual descriptions. Let's dive into the details of each class.
+
+
+# Initial Setup 
+To run this code, you'll need to set up Jupyter Notebook on your machine. Here are the steps to get started:
+
+1. **Install Python**: Ensure that Python is installed on your system. You can download it from the [official Python website](https://www.python.org/downloads/).
+   
+2. **Install Jupyter**: You can install Jupyter Notebook using pip. Open your terminal or command prompt and run:
+   ```bash
+   pip install jupyter
+
+After you set up Jupyter, make sure you are running this model with your GPU. You can create a custom one and call it **Cuda** as we will be using Cuda for this stable diffusion.
+If you are using Notebooks instead of Jupyter Notebooks, then you can select the **T5** GPU and run it based on that.
+
+# Code 
+
+To begin we will start the attention class.
+
+> Note: All the explantion to the code is added as comments!
+
+## 1. Attention Class
+
+First type of class as part of the Attention class is the `SelfAttention` class that implements the self-attention mechanism. It allows the model to weigh the importance of different tokens in a sequence when making predictions.
+
+```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import math 
+
+class SelfAttention(nn.Module):
+    
+  import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import math 
+
+class SelfAttention(nn.Module):
+    def __init__(self, n_heads, d_embed: int, in_proj_bias=True, out_proj_bias=True):
+        super().__init__()
+        # Initialize linear layers for input projection (query, key, value)
+        self.in_proj = nn.Linear(d_embed, 3 * d_embed, bias=in_proj_bias)
+        # Initialize linear layer for output projection
+        self.out_proj = nn.Linear(d_embed, d_embed, bias=out_proj_bias)
+        # Store the number of attention heads
+        self.n_heads = n_heads
+        # Calculate the dimension of each head
+        self.d_head = d_embed // n_heads
+
+    def forward(self, x: torch.Tensor, casual_mask=False):
+        # Get the shape of the input tensor
+        input_shape = x.shape
+        batch_size, sequence_length, d_embed = input_shape
+        # Create a shape for the intermediate tensor after splitting into heads
+        intermim_shape = (batch_size, sequence_length, self.n_heads, self.d_head)
+        
+        # Project input to query, key, and value vectors
+        q, k, v = self.in_proj(x).chunk(3, dim=1)
+        
+        # Reshape and transpose query, key, and value tensors for multi-head attention
+        q = q.view(intermim_shape).transpose(1, 2)  # Shape: (batch_size, n_heads, sequence_length, d_head)
+        k = k.view(intermim_shape).transpose(1, 2)  # Shape: (batch_size, n_heads, sequence_length, d_head)
+        v = v.view(intermim_shape).transpose(1, 2)  # Shape: (batch_size, n_heads, sequence_length, d_head)
+        
+        # Calculate attention weights using dot product of queries and keys
+        weight = q @ k.transpose(-1, -2)  # Shape: (batch_size, n_heads, sequence_length, sequence_length)
+        
+        # Apply causal masking if specified
+        if casual_mask:
+            # Create a mask to prevent attending to future tokens
+            mask = torch.ones_like(weight, dtype=torch.bool).triu(1)
+            # Fill masked positions with negative infinity to zero out their contributions
+            weight.masked_fill(mask, -torch.inf)
+        
+        # Scale attention weights
+        weight /= math.sqrt(self.d_head)
+        # Apply softmax to get attention probabilities
+        weight = F.softmax(weight, dim=-1)
+        
+        # Compute the output by multiplying attention weights with value tensor
+        output = weight @ v  # Shape: (batch_size, n_heads, sequence_length, d_head)
+        # Reshape output back to original input shape
+        output = output.reshape(input_shape)  # Shape: (batch_size, sequence_length, d_embed)
+        # Project output to original embedding dimension
+        output = self.out_proj(output)
+        
+        return output  # Return the final output tensor
+```
+The SelfAttention class initializes linear projections for the input data and calculates attention weights. The attention mechanism enables the model to focus on relevant parts of the input sequence while making predictions.
+
+### Next up is the Cross Attention class 
+
+```python
+import math
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class CrossAttention(nn.Module):
+    def __init__(self, n_heads: int, d_embed: int, d_cross: int, in_proj_bias=True, out_proj_bias=True):
+        super().__init__()
+        
+        # Linear layers to project input queries, keys, and values to the same dimension.
+        self.q_proj = nn.Linear(d_embed, d_embed, bias=in_proj_bias)
+        self.k_proj = nn.Linear(d_cross, d_embed, bias=in_proj_bias)
+        self.v_proj = nn.Linear(d_cross, d_embed, bias=in_proj_bias)
+
+        # Linear layer to project the output back to the original dimension.
+        self.out_proj = nn.Linear(d_embed, d_embed, bias=out_proj_bias)
+
+        # Number of attention heads.
+        self.n_heads = n_heads
+
+        # Dimension per head (split embedding dimension across heads).
+        self.d_head = d_embed // n_heads
+
+    def forward(self, x, y):
+        # Extract input shapes for reshaping and processing later.
+        input_shape = x.shape  # (batch_size, seq_len_q, d_embed)
+        batch_size, sequence_length, d_embed = input_shape
+
+        # Define the shape for splitting embeddings across multiple heads.
+        interim_shape = (batch_size, -1, self.n_heads, self.d_head)
+
+        # Project the inputs into query (q), key (k), and value (v) spaces.
+        q = self.q_proj(x)  # Shape: (batch_size, seq_len_q, d_embed)
+        k = self.k_proj(y)  # Shape: (batch_size, seq_len_kv, d_embed)
+        v = self.v_proj(y)  # Shape: (batch_size, seq_len_kv, d_embed)
+
+        # Reshape and transpose to split across heads: (batch_size, n_heads, seq_len, d_head)
+        q = q.view(interim_shape).transpose(1, 2)  # Shape: (batch_size, n_heads, seq_len_q, d_head)
+        k = k.view(interim_shape).transpose(1, 2)  # Shape: (batch_size, n_heads, seq_len_kv, d_head)
+        v = v.view(interim_shape).transpose(1, 2)  # Shape: (batch_size, n_heads, seq_len_kv, d_head)
+
+        # Compute scaled dot-product attention weights: q @ k^T / sqrt(d_head).
+        weight = q @ k.transpose(-1, -2)  # Shape: (batch_size, n_heads, seq_len_q, seq_len_kv)
+        weight /= math.sqrt(self.d_head)  # Scale by the square root of head dimension.
+
+        # Apply softmax to normalize the weights along the last dimension.
+        weight = F.softmax(weight, dim=-1)  # Shape: (batch_size, n_heads, seq_len_q, seq_len_kv)
+
+        # Compute the weighted sum of values.
+        output = weight @ v  # Shape: (batch_size, n_heads, seq_len_q, d_head)
+
+        # Rearrange the output back to (batch_size, seq_len_q, d_embed).
+        output = output.transpose(1, 2).contiguous()  # Shape: (batch_size, seq_len_q, n_heads, d_head)
+        output = output.view(input_shape)  # Flatten the heads: (batch_size, seq_len_q, d_embed)
+
+        # Apply the output projection to get the final result.
+        output = self.out_proj(output)  # Shape: (batch_size, seq_len_q, d_embed)
+
+        return output
+
+```
+
+
+**Key Concepts**
+
+Query (q), Key (k), and Value (v) Projections:
+
+- The input is projected into different spaces using linear transformations. These projections are used to compute attention weights and the final output.
+
+Splitting across Heads:
+- The embedding dimension is divided across multiple heads for parallel attention. Each head learns its own attention patterns.
+
+Scaled Dot-Product Attention:
+- The attention weight is calculated as the dot product of q and k, scaled by the square root of the head dimension to prevent large gradients.
+
+Softmax Normalization:
+
+- Softmax is applied to the computed weights so they sum to 1, making them interpretable as probabilities.
+
+Reassembly after Multi-Head Attention:
+- After processing across heads, the outputs are concatenated and projected back to the original embedding space.
 
 
 
+
+
+## 2\. CLIP Class
+```python
+#This class will utilize a model named "CLIP", 
+#which is an Open AI tool that utilizes AI to turn text into embeddings
+
+import torch
+import torch.nn as nn  # Import PyTorch neural network modules.
+import torch.nn.functional as F  # Import functional utilities (e.g., softmax).
+import math  # Import math for operations like square root.
+
+class SelfAttention(nn.Module):
+    def __init__(self, n_heads: int, d_embed: int, in_proj_bias=True, out_proj_bias=True):
+        super().__init__()
+
+        # Linear layer to compute queries, keys, and values in a single operation.
+        self.in_proj = nn.Linear(d_embed, 3 * d_embed, bias=in_proj_bias)
+
+        # Output projection layer to combine the outputs from multiple heads.
+        self.out_proj = nn.Linear(d_embed, d_embed, bias=out_proj_bias)
+
+        # Number of attention heads.
+        self.n_heads = n_heads
+
+        # Dimensionality per head (dividing embedding size across heads).
+        self.d_head = d_embed // n_heads
+
+    def forward(self, x: torch.Tensor, causal_mask=False) -> torch.Tensor:
+        input_shape = x.shape  # (Batch_Size, Seq_Len, d_embed)
+        batch_size, sequence_length, d_embed = input_shape
+
+        # Reshape for multi-head attention.
+        interim_shape = (batch_size, sequence_length, self.n_heads, self.d_head)
+
+        # Project input into queries, keys, and values.
+        # (Batch_Size, Seq_Len, 3 * d_embed) -> 3 tensors of (Batch_Size, Seq_Len, d_embed).
+        q, k, v = self.in_proj(x).chunk(3, dim=-1)
+
+        # Reshape and transpose for multi-head computation.
+        # (Batch_Size, Seq_Len, H, d_head) -> (Batch_Size, H, Seq_Len, d_head).
+        q = q.view(interim_shape).transpose(1, 2)
+        k = k.view(interim_shape).transpose(1, 2)
+        v = v.view(interim_shape).transpose(1, 2)
+
+        # Compute attention scores by multiplying queries with transposed keys.
+        weight = q @ k.transpose(-1, -2)  # (Batch_Size, H, Seq_Len, Seq_Len)
+
+        if causal_mask:
+            # Create a mask to block attention to future tokens (upper triangular).
+            mask = torch.ones_like(weight, dtype=torch.bool).triu(1)
+            weight = weight.masked_fill(mask, float('-inf'))  # Replace masked values with -inf.
+
+        # Scale the weights by the square root of head dimension to stabilize gradients.
+        weight /= math.sqrt(self.d_head)
+
+        # Apply softmax to get attention probabilities.
+        weight = F.softmax(weight, dim=-1)
+
+        # Compute weighted sum of values.
+        output = weight @ v  # (Batch_Size, H, Seq_Len, d_head)
+
+        # Reshape back to original input shape.
+        output = output.transpose(1, 2).reshape(input_shape)  # (Batch_Size, Seq_Len, d_embed)
+
+        # Apply the output projection.
+        output = self.out_proj(output)
+
+        return output  # (Batch_Size, Seq_Len, d_embed)
+
+class CrossAttention(nn.Module):
+
+    def __init__(self, n_heads: int, d_embed: int, d_cross: int, in_proj_bias=True, out_proj_bias=True):
+        super().__init__()
+
+        # Projection layers for queries, keys, and values.
+        self.q_proj = nn.Linear(d_embed, d_embed, bias=in_proj_bias)
+        self.k_proj = nn.Linear(d_cross, d_embed, bias=in_proj_bias)
+        self.v_proj = nn.Linear(d_cross, d_embed, bias=in_proj_bias)
+
+        # Output projection layer.
+        self.out_proj = nn.Linear(d_embed, d_embed, bias=out_proj_bias)
+
+        # Number of attention heads and dimension per head.
+        self.n_heads = n_heads
+        self.d_head = d_embed // n_heads
+
+    def forward(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+        input_shape = x.shape  # (Batch_Size, Seq_Len_Q, d_embed)
+        batch_size, sequence_length, d_embed = input_shape
+
+        # Reshape for multi-head attention.
+        interim_shape = (batch_size, -1, self.n_heads, self.d_head)
+
+        # Project inputs into queries, keys, and values.
+        q = self.q_proj(x)  # (Batch_Size, Seq_Len_Q, d_embed)
+        k = self.k_proj(y)  # (Batch_Size, Seq_Len, d_embed)
+        v = self.v_proj(y)  # (Batch_Size, Seq_Len, d_embed)
+
+        # Reshape and transpose for multi-head computation.
+        q = q.view(interim_shape).transpose(1, 2)  # (Batch_Size, H, Seq_Len_Q, d_head)
+        k = k.view(interim_shape).transpose(1, 2)  # (Batch_Size, H, Seq_Len, d_head)
+        v = v.view(interim_shape).transpose(1, 2)  # (Batch_Size, H, Seq_Len, d_head)
+
+        # Compute attention scores between queries and keys.
+        weight = q @ k.transpose(-1, -2)  # (Batch_Size, H, Seq_Len_Q, Seq_Len)
+
+        # Scale the attention scores.
+        weight /= math.sqrt(self.d_head)
+
+        # Apply softmax to get attention probabilities.
+        weight = F.softmax(weight, dim=-1)
+
+        # Compute weighted sum of values.
+        output = weight @ v  # (Batch_Size, H, Seq_Len_Q, d_head)
+
+        # Reshape back to original input shape.
+        output = output.transpose(1, 2).contiguous().view(input_shape)
+
+        # Apply the output projection.
+        output = self.out_proj(output)
+
+        return output  # (Batch_Size, Seq_Len_Q, d_embed)
+
+```
+
+**Key Concepts**
+
+Self-Attention:
+-  Allows each token in a sequence to attend to all other tokens within the same sequence.
+
+Cross-Attention: 
+- Enables interaction between two different input sequences, often used in encoder-decoder models.
+
+Multi-Head Attention: 
+- Splits the input into multiple heads to learn different aspects of the input data.
+
+Causal Masking: 
+- Prevents a token from attending to future tokens, ensuring that predictions are made sequentially.
+
+Softmax: 
+- Converts attention scores into probabilities.
+
+Residual Connections: 
+- Improve gradient flow and training stability.
+
+## 3\. Denoising Diffusion Probabilistic Model Class
+```python
+import torch
+import numpy as np
+
+class DDPMSampler:
+    def __init__(self, generator: torch.Generator, num_training_steps=1000, beta_start: float = 0.00085, beta_end: float = 0.0120):
+        # Create a linearly spaced schedule for betas, and square them.
+        self.betas = torch.linspace(beta_start ** 0.5, beta_end ** 0.5, num_training_steps, dtype=torch.float32) ** 2
+        # Compute the alphas (1 - beta) for each step.
+        self.alphas = 1.0 - self.betas
+        # Compute the cumulative product of alphas over timesteps.
+        self.alphas_cumprod = torch.cumprod(self.alphas, dim=0)
+        self.one = torch.tensor(1.0)  # Constant tensor with value 1.
+
+        self.generator = generator  # Store the random generator for reproducibility.
+        self.num_train_timesteps = num_training_steps  # Number of timesteps for training.
+
+        # Initialize timesteps in reverse order for inference.
+        self.timesteps = torch.from_numpy(np.arange(0, num_training_steps)[::-1].copy())
+
+    def set_inference_timesteps(self, num_inference_steps=50):
+        self.num_inference_steps = num_inference_steps
+        step_ratio = self.num_train_timesteps // self.num_inference_steps
+        # Calculate timesteps to use, ensuring they are evenly spaced.
+        timesteps = (np.arange(0, num_inference_steps) * step_ratio).round()[::-1].copy().astype(np.int64)
+        self.timesteps = torch.from_numpy(timesteps)
+
+    def _get_previous_timestep(self, timestep: int) -> int:
+        prev_t = timestep - self.num_train_timesteps // self.num_inference_steps
+        return prev_t
+
+    def _get_variance(self, timestep: int) -> torch.Tensor:
+        prev_t = self._get_previous_timestep(timestep)
+
+        alpha_prod_t = self.alphas_cumprod[timestep]
+        alpha_prod_t_prev = self.alphas_cumprod[prev_t] if prev_t >= 0 else self.one
+        current_beta_t = 1 - alpha_prod_t / alpha_prod_t_prev
+
+        # Calculate the variance following the DDPM paper's formula.
+        variance = (1 - alpha_prod_t_prev) / (1 - alpha_prod_t) * current_beta_t
+
+        # Clamp variance to avoid numerical instability (log of 0).
+        variance = torch.clamp(variance, min=1e-20)
+
+        return variance
+
+    def set_strength(self, strength=1):
+        """
+        Sets the noise strength, controlling how much noise is added to the input image.
+        Args:
+            strength: Value between 0 and 1 controlling noise level (1 = max noise).
+        """
+        # Calculate the starting step based on noise strength.
+        start_step = self.num_inference_steps - int(self.num_inference_steps * strength)
+        # Adjust the timesteps to start from the calculated step.
+        self.timesteps = self.timesteps[start_step:]
+        self.start_step = start_step
+
+    def step(self, timestep: int, latents: torch.Tensor, model_output: torch.Tensor):
+        t = timestep
+        prev_t = self._get_previous_timestep(t)
+
+        # Compute intermediate alpha and beta products for current and previous steps.
+        alpha_prod_t = self.alphas_cumprod[t]
+        alpha_prod_t_prev = self.alphas_cumprod[prev_t] if prev_t >= 0 else self.one
+        beta_prod_t = 1 - alpha_prod_t
+        beta_prod_t_prev = 1 - alpha_prod_t_prev
+        current_alpha_t = alpha_prod_t / alpha_prod_t_prev
+        current_beta_t = 1 - current_alpha_t
+
+        # Predict the original sample (x_0) using formula (15) from the DDPM paper.
+        pred_original_sample = (latents - beta_prod_t ** 0.5 * model_output) / alpha_prod_t ** 0.5
+
+        # Compute coefficients for combining the predicted original sample and the current latent sample.
+        pred_original_sample_coeff = (alpha_prod_t_prev ** 0.5 * current_beta_t) / beta_prod_t
+        current_sample_coeff = current_alpha_t ** 0.5 * beta_prod_t_prev / beta_prod_t
+
+        # Compute the predicted previous sample (µ_t) using formula (7).
+        pred_prev_sample = pred_original_sample_coeff * pred_original_sample + current_sample_coeff * latents
+
+        # Add noise to the predicted sample if not at the first timestep.
+        variance = 0
+        if t > 0:
+            device = model_output.device
+            # Generate Gaussian noise for the current device and dtype.
+            noise = torch.randn(model_output.shape, generator=self.generator, device=device, dtype=model_output.dtype)
+            # Scale the noise by the square root of the variance.
+            variance = (self._get_variance(t) ** 0.5) * noise
+
+        # Add the noise to the predicted previous sample.
+        pred_prev_sample = pred_prev_sample + variance
+
+        return pred_prev_sample
+
+    def add_noise(self, original_samples: torch.FloatTensor, timesteps: torch.IntTensor) -> torch.FloatTensor:
+        # Move cumulative alpha products to the correct device and dtype.
+        alphas_cumprod = self.alphas_cumprod.to(device=original_samples.device, dtype=original_samples.dtype)
+        timesteps = timesteps.to(original_samples.device)
+
+        # Compute square roots of alpha products and (1 - alpha products).
+        sqrt_alpha_prod = alphas_cumprod[timesteps] ** 0.5
+        sqrt_alpha_prod = sqrt_alpha_prod.flatten()
+        while len(sqrt_alpha_prod.shape) < len(original_samples.shape):
+            sqrt_alpha_prod = sqrt_alpha_prod.unsqueeze(-1)
+
+        sqrt_one_minus_alpha_prod = (1 - alphas_cumprod[timesteps]) ** 0.5
+        sqrt_one_minus_alpha_prod = sqrt_one_minus_alpha_prod.flatten()
+        while len(sqrt_one_minus_alpha_prod.shape) < len(original_samples.shape):
+            sqrt_one_minus_alpha_prod = sqrt_one_minus_alpha_prod.unsqueeze(-1)
+
+        # Generate Gaussian noise and add it to the scaled input samples.
+        noise = torch.randn(original_samples.shape, generator=self.generator, device=original_samples.device, dtype=original_samples.dtype)
+        noisy_samples = sqrt_alpha_prod * original_samples + sqrt_one_minus_alpha_prod * noise
+
+        return noisy_samples
+```
+
+**Key Concepts**
+
+DDPM (Denoising Diffusion Probabilistic Models):
+- A type of generative model that gradually adds noise to data and then learns to reverse this noise to generate new samples.
+
+Betas:
+- A sequence of increasing noise values for each timestep, determining how much noise is added at each step.
+- Controls the noise schedule throughout the diffusion process.
+
+Alphas and Cumulative Product of Alphas:
+- Alphas represent the amount of information retained from the original sample at each timestep (1 - Beta).
+- Cumulative product of alphas is used to calculate how much of the original input persists across multiple noisy steps.
+
+Timesteps:
+- Represent discrete steps in the noise-adding or noise-removal process. 
+- Training timesteps are used during model training (e.g., 1000 steps), while inference timesteps are a subset used to generate samples faster (e.g., 50 steps).
+
+Variance and Noise:
+- Variance determines the amount of randomness added when reversing noise at each timestep. 
+- Noise is sampled from a normal distribution and scaled according to the variance to perturb or denoise latents.
+
+Strength Parameter:
+- Determines how much noise is added. A higher strength value generates outputs further from the input, while a lower strength keeps them closer to the input image.
+
+Prediction of Original Samples (x₀):
+- During inference, the model predicts the original input (x₀) from a noisy version. This prediction helps reconstruct the final sample step-by-step.
+
+Causal Masking:
+- Ensures that information flows only from previous timesteps and not future ones (important for sequential processes).
+
+Residual Connections:
+- In some stages (like calculating previous samples), information from both the current sample and the predicted original sample is combined, helping the model maintain stable updates.
+
+
+## 4\. Encoder Class
+```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from decoder import VAE_AttentionBlock, VAE_ResidualBlock
+
+#We decrease the size of the image but also at the same time we keep on adding more channels (specific component of the image ) to the image
+class VAE_Encoder(nn.Sequential):
+    
+    def __init__(self):
+        
+        #We keep on decreasing the size of the image but each pixel holds more information while # of pixels are decreasing
+        super().__init__(
+            # (Batch_Size, Channel, Height, Width) -> (Batch_Size, 128, Height, Width)
+            #A kernel slides over the 2d input data and performs multiplication -> creates layers in neural networks
+            nn.Conv2d(3, 128, kernel_size=3, padding=1),
+            
+            #(input channels, output channels) - Wont change the size of the image                      
+            VAE_ResidualBlock(128,128),
+                        
+            #(input channels, output channels) - Wont the size of the image
+            VAE_ResidualBlock(128,128),
+            
+            # (Batch_Size, 128, Height, Width) -> (Batch_Size, 128, Height / 2, Width / 2) (changes the size of the image)
+            nn.Conv2d(128,128, kernel_size=3, stride=2, padding=0),
+            
+            # (Batch_Size, 128, Height / 2, Width / 2) -> (Batch_Size, 256, Height / 2, Width / 2) -> Channels increase
+            VAE_ResidualBlock(128,256),
+             # (Batch_Size, 256, Height / 2, Width / 2) -> (Batch_Size, 256, Height / 2, Width / 2) -> Chanenls stays the same
+            VAE_ResidualBlock(256,256),
+            
+            # (Batch_Size, 256, Height / 2, Width / 2) -> (Batch_Size, 256, Height / 4, Width / 4) -> Size gets halfed again
+            nn.Conv2d(256,256, kernel_size=3, stride=2, padding=0),
+            
+            # (Batch_Size, 256, Height / 4, Width / 4) -> (Batch_Size, 512, Height / 4, Width / 4) -> Channels increase
+            VAE_ResidualBlock(256,512),
+            
+            # (Batch_Size, 512, Height / 4, Width / 4) -> (Batch_Size, 512, Height / 4, Width / 4) -> Channels stays the same
+            VAE_ResidualBlock(512,512),
+             
+            # (Batch_Size, 512, Height / 8, Width / 8) -> (Batch_Size, 512, Height / 8, Width / 8) -> Size gets halfed again
+            nn.Conv2d(512,512, kernel_size=3, stride=2, padding=0),
+            
+            VAE_ResidualBlock(512,512), 
+            
+            VAE_ResidualBlock(512,512),
+            
+            # (Batch_Size, 512, Height / 8, Width / 8) -> (Batch_Size, 512, Height / 8, Width / 8) --> stays the same
+            VAE_ResidualBlock(512,512),
+            
+            # (Batch_Size, 512, Height / 8, Width / 8) -> (Batch_Size, 512, Height / 8, Width / 8) -> stays the same
+            VAE_AttentionBlock(512),
+            
+            # (Batch_Size, 512, Height / 8, Width / 8) -> (Batch_Size, 512, Height / 8, Width / 8) --> stays the same
+            VAE_ResidualBlock(512,512),
+            
+            #caclulates the standard deviation -> (Batch_Size, 512, Height / 8, Width / 8) -> (Batch_Size, 512, Height / 8, Width / 8) --> stays the same
+            nn.GroupNorm(32, 512),
+            
+            # (Batch_Size, 512, Height / 8, Width / 8) -> (Batch_Size, 512, Height / 8, Width / 8) -> stays the same
+            nn.SiLU(),
+            
+            # (Batch_Size, 512, Height / 8, Width / 8) -> (Batch_Size, 8, Height / 8, Width / 8) -> changes from the max to 8 and bottle neck of the encoder
+            nn.Conv2d(512, 8, kernel_size=3, padding=1),
+            
+            # (Batch_Size, 512, Height / 8, Width / 8) -> (Batch_Size, 8, Height / 8, Width / 8) -> stays the same 
+            nn.Conv2d(8, 8, kernel_size=1, padding=0)
+        )
+        
+        #runs through __init__() -> each convolution block 
+        #@return torch.Tensor (variable x which is a tensor)
+        #@param x, noise -> both tensor values
+        def forward(self, x: torch.Tensor, noise: torch.Tensor) -> torch.Tensor:
+            #x : (Batch_size, Channnel, Height, Width)
+            #noise: (Batch_Size, Output_Channels, Height /8, Width /8)
+            
+            #runs the modules in init sequentially
+            for module in self:
+                #for convulations that we have destroyed we need a special embed padding 
+                if getattr(module, 'stride', None) == (2,2):
+                    #pad ( left, right, top, bottom) -> applies padding 
+                    x = F.pad(x, (0,1,0,1))
+                x = module(x)
+                
+            #Output of the variotional encoder is the mean and the log variance 
+            # (Batch_size, 8, Height, Height / 8, Width /8 )
+            mean, log_variance = torch.chunk(x, 2, dim=1) # chunk -> divide into 2 tensors along this dimension  (Batch_Size, 4, height / 8, width / 8)
+            
+            # (Batch_Size, 4, height / 8, width / 8) -> (Batch_Size, 4, height / 8, width / 8) -> stays the same
+            log_variance = torch.clamp(log_variance, -30, 20)
+            
+            # (Batch_Size, 4, height / 8, width / 8) -> (Batch_Size, 4, height / 8, width / 8) -> stays the same
+            variance = log_variance.exp()  #returns tensor with exponential of the elements
+            
+            # (Batch_Size, 4, height / 8, width / 8) -> (Batch_Size, 4, height / 8, width / 8) -> stays the same
+            stdev = variance.sqrt() # #returns tensor with sqrt of the elements
+            
+            # Z = N(0,1 ) -> X = N(mean, variance) ;  How do we convert (0,1) to the mean and variance that we are looking for
+            # X = mean + stdev * Z
+            x = mean + stdev * noise
+            
+            # Scale the output by a constant
+            x *= 0.18215
+            
+            return x
+            
+```
+
+**Key Concepts**
+
+Variational Autoencoder (VAE):
+- A generative model that learns to encode input data into a latent space while also modeling the distribution of that latent space for reconstruction and sampling.
+Convolutional Layers:
+- Layers that apply convolution operations to the input image, extracting features by sliding kernels over the input, crucial for image processing tasks.
+
+Residual Blocks:
+- Allow for the construction of deeper networks by enabling skip connections, which help to mitigate vanishing gradient problems and improve model training efficiency.
+
+Attention Blocks:
+- Mechanisms that enable the model to focus on specific parts of the input, enhancing its ability to capture long-range dependencies within the data.
+
+Downsampling:
+- The process of reducing the spatial dimensions of the image (height and width) while potentially increasing the number of channels, allowing for a more compact representation.
+Batch Normalization and Group Normalization:
+- Techniques that stabilize and accelerate training by normalizing the output of a layer. Group normalization is particularly useful when batch sizes are small.
+
+## 5\. Decoder Class
+```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from attention import SelfAttention
+
+
+class VAE_AttentionBlock(nn.Module):
+    def __init_(self, channels: int):
+        super().__init__()
+        self.groupnorm = nn.GroupNorm(32, channels)
+        self.attention = SelfAttention(1, channels)
+        
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # (Batch_Size, Features, Height, Width)
+        
+        residue = x
+        
+        n,c,h, w = x.shape
+        
+        # (Batch_Size, Features, Height, Width) ->  (Batch_Size, Features, Height * Width)
+        x = x.view(n,c,h * w)
+        
+        # (Batch_Size, Features, Height, Width) ->  (Batch_Size, Features, Height * Width, Features)
+        x = x.transpose(-1, -2)
+        
+        # (Batch_Size, Features, Height, Width) ->  (Batch_Size, Features, Height * Width, Features)
+        x = self.attention(x)
+        
+        # (Batch_Size, Features, Height, Width) ->  (Batch_Size, Features, Height * Width)
+        x = x.transpose(-1, -2)
+        
+        # (Batch_Size, Features, Height, Width) ->  (Batch_Size, Features, Height, Width)
+        x = x.view((n,c,h,w))
+        
+        x += residue
+        
+        return x
+class VAE_ResidualBlock(nn.Module):
+    #constructor
+    def __init__(self, in_channels, out_channels):
+        super().__init__()
+        self.groupnorm_1 = nn.GroupNorm(32, in_channels)
+        self.conv_1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
+        
+        self.groupnorm_2 = nn.GroupNorm(32, out_channels)
+        self.conv_2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1)
+        
+        #if the input channels and the output channels are not equal, then the x and residue will be in different dimensions
+        if in_channels == out_channels:
+            self.residual_layer = nn.Identity()
+        else:
+            self.residual_layer = nn.Conv2d(in_channels, out_channels, kernel_size=1, padding=0) #this helps converts input channels to ouput channels of x so we can return x + residue
+            
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # (Batch_Size, In_channels, height, width)
+        
+        residue = x
+        
+        x = self.groupnorm_1(x)
+        
+        x = F.silu(x)
+        
+        #apply the first convolution
+        x = self.conv_2(x)
+        
+        return x + self.residual_layer(residue)
+    
+class VAE_Decoder(nn.Sequential):
+    
+    #construtor
+    def __init__(self):
+        super().__init__(
+            nn.Conv2d(4,4,kernel_size=1, padding=0),
+            
+            nn.Conv2d(4, 512, kernel_size=1, padding=1),
+            
+            VAE_ResidualBlock(512, 512),
+            
+            VAE_AttentionBlock(512),
+            
+            VAE_ResidualBlock(512, 512),
+            
+            VAE_ResidualBlock(512, 512),
+            
+            VAE_ResidualBlock(512, 512),
+            
+            VAE_ResidualBlock(512, 512),
+            
+            # (Batch_Size, 512, Height / 8, Width /8 ) -> (Batch_Size, 512, Height / 4, Width / 4)
+            nn.Upsample(scale_factor=2),
+            
+            nn.Conv2d(512, 512, kernel_size=3, padding=1),
+            
+            VAE_ResidualBlock(512, 512),
+            VAE_ResidualBlock(512, 512),
+            VAE_ResidualBlock(512, 512),
+            
+            # (Batch_Size, 512, Height / 4, Width /4 ) -> (Batch_Size, 512, Height / 2, Width / 2)
+            nn.Upsample(scale_factor=2),
+            
+            
+            nn.Conv2d(512, 512, kernel_size=3, padding=1),
+            
+            VAE_ResidualBlock(512, 256),
+            VAE_ResidualBlock(256, 256),
+            VAE_ResidualBlock(256, 256),
+            
+            # (Batch_Size, 256, Height / 2, Width /2 ) -> (Batch_Size, 256, Height , Width )
+            nn.Upsample(scale_factor=2),
+            
+            nn.Conv2d(256, 256, kernel_size=3, padding=1),
+            
+            VAE_ResidualBlock(256, 128),
+            VAE_ResidualBlock(128, 128),
+            VAE_ResidualBlock(128, 128),
+            
+            # (Groups of num, num of channels)
+            nn.GroupNorm(32, 128),
+            
+            nn.SiLU(),
+            
+            # (Batch_size, 128, Hegiht, Width ) - >  (Batch_size, 3, Hegiht, Width ) 
+            nn.Conv2d(128, 3, kernel_size=3, padding=1)
+        )
+        
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # x: (Batch_size, 4, Height / 8, Width / 8)
+        
+        x /= 0.18215
+        
+        for module in self:
+            x = module(x)
+            
+        # (Batch_Size, 3, Height, Width)
+        return x
+```
+**Key Concepts**
+
+Variational Autoencoder (VAE):
+- A type of generative model that learns to encode input data into a latent space and reconstruct it, typically used for tasks such as image generation.
+
+Attention Mechanism:
+- A method that allows the model to focus on different parts of the input data dynamically, enhancing feature extraction and long-range dependencies.
+
+Group Normalization:
+- A normalization technique that operates on groups of channels rather than individual samples, making it effective for small batch sizes and improving training stability.
+
+Residual Connections:
+- Connections that allow the input to bypass certain layers, helping to mitigate issues such as vanishing gradients and allowing for deeper networks without losing information.
+
+Convolutional Layers:
+- Layers that apply convolution operations to the input data, extracting local patterns and features from images, which are crucial for processing spatial data.
+
+Upsampling:
+- The process of increasing the spatial dimensions of the feature maps, typically done to reconstruct images back to their original size after downsampling.
+
+SiLU Activation Function:
+- A smooth, non-linear activation function that is a variant of the ReLU function, often leading to better performance in deep networks.
+
+## 6\. Pipeline Class
+```python
+# This is the main pipline that the embeddings go through
+# This is the main pipeline that the embeddings go through
+import torch
+import numpy as np
+from tqdm import tqdm
+from ddpm import DDPMSampler
+
+# Constants for image dimensions
+WIDTH = 512
+HEIGHT = 512
+LATENTS_WIDTH = WIDTH // 8
+LATENTS_HEIGHT = HEIGHT // 8
+
+def generate(
+    prompt,
+    uncond_prompt=None,
+    input_image=None,
+    strength=0.8,
+    do_cfg=True,
+    cfg_scale=7.5,
+    sampler_name="ddpm",
+    n_inference_steps=50,
+    models={},
+    seed=None,
+    device=None,
+    idle_device=None,
+    tokenizer=None,
+):
+    with torch.no_grad():
+        # Validate strength parameter
+        if not 0 < strength <= 1:
+            raise ValueError("strength must be between 0 and 1")
+
+        # Prepare device management for tensor processing
+        if idle_device:
+            to_idle = lambda x: x.to(idle_device)
+        else:
+            to_idle = lambda x: x
+
+        # Initialize random number generator according to the specified seed
+        generator = torch.Generator(device=device)
+        if seed is None:
+            generator.seed()  # Use default seed if none provided
+        else:
+            generator.manual_seed(seed)  # Set manual seed for reproducibility
+
+        # Load the CLIP model and move it to the specified device
+        clip = models["clip"]
+        clip.to(device)
+
+        if do_cfg:
+            # Tokenize the conditional prompt and pad to max length
+            cond_tokens = tokenizer.batch_encode_plus(
+                [prompt], padding="max_length", max_length=77
+            ).input_ids
+            # Convert to tensor
+            cond_tokens = torch.tensor(cond_tokens, dtype=torch.long, device=device)
+            # Generate conditional context using the CLIP model
+            cond_context = clip(cond_tokens)
+
+            # Tokenize the unconditional prompt
+            uncond_tokens = tokenizer.batch_encode_plus(
+                [uncond_prompt], padding="max_length", max_length=77
+            ).input_ids
+            uncond_tokens = torch.tensor(uncond_tokens, dtype=torch.long, device=device)
+            # Generate unconditional context
+            uncond_context = clip(uncond_tokens)
+
+            # Combine conditional and unconditional contexts
+            context = torch.cat([cond_context, uncond_context])
+        else:
+            # Tokenize and encode only the conditional prompt
+            tokens = tokenizer.batch_encode_plus(
+                [prompt], padding="max_length", max_length=77
+            ).input_ids
+            tokens = torch.tensor(tokens, dtype=torch.long, device=device)
+            context = clip(tokens)
+
+        to_idle(clip)  # Free up CLIP model resources if using an idle device
+
+        # Set up the diffusion sampler
+        if sampler_name == "ddpm":
+            sampler = DDPMSampler(generator)  # Initialize DDPM sampler with generator
+            sampler.set_inference_timesteps(n_inference_steps)  # Set number of inference steps
+        else:
+            raise ValueError("Unknown sampler value %s. " % sampler_name)
+
+        # Define the shape of the latent variables
+        latents_shape = (1, 4, LATENTS_HEIGHT, LATENTS_WIDTH)
+
+        if input_image:
+            # If an input image is provided, process it
+            encoder = models["encoder"]
+            encoder.to(device)
+
+            # Resize and convert input image to tensor
+            input_image_tensor = input_image.resize((WIDTH, HEIGHT))
+            input_image_tensor = np.array(input_image_tensor)  # Convert to numpy array
+            input_image_tensor = torch.tensor(input_image_tensor, dtype=torch.float32, device=device)
+            # Rescale image values to the range (-1, 1)
+            input_image_tensor = rescale(input_image_tensor, (0, 255), (-1, 1))
+            # Add batch dimension and permute dimensions for compatibility
+            input_image_tensor = input_image_tensor.unsqueeze(0).permute(0, 3, 1, 2)
+
+            # Generate noise for encoding
+            encoder_noise = torch.randn(latents_shape, generator=generator, device=device)
+            # Encode the input image to latent space
+            latents = encoder(input_image_tensor, encoder_noise)
+
+            # Add noise to the latents
+            sampler.set_strength(strength=strength)
+            latents = sampler.add_noise(latents, sampler.timesteps[0])
+
+            to_idle(encoder)  # Free up encoder resources
+        else:
+            # If no input image, initialize latents with random noise
+            latents = torch.randn(latents_shape, generator=generator, device=device)
+
+        # Load and move the diffusion model to the specified device
+        diffusion = models["diffusion"]
+        diffusion.to(device)
+
+        # Process each timestep in the diffusion process
+        timesteps = tqdm(sampler.timesteps)  # Progress bar for timesteps
+        for i, timestep in enumerate(timesteps):
+            # Get time embedding for the current timestep
+            time_embedding = get_time_embedding(timestep).to(device)
+
+            # Prepare model input based on conditional or unconditional context
+            model_input = latents
+
+            if do_cfg:
+                # Repeat model input for conditional and unconditional processing
+                model_input = model_input.repeat(2, 1, 1, 1)
+
+            # Generate predicted noise from the diffusion model
+            model_output = diffusion(model_input, context, time_embedding)
+
+            if do_cfg:
+                # Adjust output based on conditional and unconditional outputs
+                output_cond, output_uncond = model_output.chunk(2)
+                model_output = cfg_scale * (output_cond - output_uncond) + output_uncond
+
+            # Step the sampler to get new latent values
+            latents = sampler.step(timestep, latents, model_output)
+
+        to_idle(diffusion)  # Free up diffusion model resources
+
+        # Decode the final latents back into images
+        decoder = models["decoder"]
+        decoder.to(device)
+        images = decoder(latents)  # (Batch_Size, 3, Height, Width)
+        to_idle(decoder)  # Free up decoder resources
+
+        # Rescale images back to original pixel value range
+        images = rescale(images, (-1, 1), (0, 255), clamp=True)
+        # Permute dimensions for correct output shape
+        images = images.permute(0, 2, 3, 1)
+        # Move images to CPU and convert to numpy array
+        images = images.to("cpu", torch.uint8).numpy()
+        return images[0]  # Return the first image from the batch
+    
+def rescale(x, old_range, new_range, clamp=False):
+    # Rescale tensor x from old_range to new_range
+    old_min, old_max = old_range
+    new_min, new_max = new_range
+    x -= old_min
+    x *= (new_max - new_min) / (old_max - old_min)
+    x += new_min
+    if clamp:
+        x = x.clamp(new_min, new_max)  # Clamp the values within new range
+    return x
+
+def get_time_embedding(timestep):
+    # Generate a time embedding for a given timestep
+    freqs = torch.pow(10000, -torch.arange(start=0, end=160, dtype=torch.float32) / 160)  # Frequency terms for positional encoding
+    x = torch.tensor([timestep], dtype=torch.float32)[:, None] * freqs[None]  # Compute the embedding based on timestep
+    return torch.cat([torch.cos(x), torch.sin(x)], dim=-1)  # Return cosine and sine embeddings
+
+```
+**Key Concepts**
+
+Diffusion Models:
+- A class of generative models that gradually transform noise into data by reversing a diffusion process, allowing for high-quality image synthesis and manipulation.
+
+Latent Space:
+- An abstract representation of the input data, where similar data points are closer together; used for encoding information in generative models like VAEs and diffusion models.
+
+Conditional Generation:
+- A process where the generation of data (such as images) is guided by additional information (like text prompts), enabling the model to produce contextually relevant outputs.
+
+CLIP (Contrastive Language–Image Pretraining):
+- A model that learns to connect images and text by training on large datasets, allowing it to understand and generate data based on textual descriptions.
+
+Time Embedding:
+- A method used in diffusion models to incorporate time information into the model's architecture, enhancing the ability to model temporal processes.
+
+Noise Injection:
+- The technique of adding noise to data or latent representations during training or inference, which helps improve robustness and encourages diversity in generated outputs.
+
+Tokenization:
+- The process of converting input text into tokens (or embeddings) that can be processed by neural networks, crucial for enabling language understanding in models.
+
+Rescaling:
+- The operation of adjusting the range of data values to fit within a specified range, often necessary for preparing data for model input or output.
+
+## 7\. Adding Noise
+
+Last but not least, lets go through the adding noise process.
+
+```python
+from ddpm import DDPMSampler
+from PIL import Image
+import torch
+import numpy as np
+import math
+
+# Initialize a random number generator with a fixed seed for reproducibility
+generator = torch.Generator()
+generator.manual_seed(0)
+
+# Instantiate the DDPM sampler with the generator
+ddpm_sampler = DDPMSampler(generator)
+
+# Define the noise levels at which to generate images
+noise_levels = [0, 10, 50, 75, 100, 250, 500, 750]
+
+# Load an image from the specified path
+img = Image.open("../images/dog.jpg")
+
+# Convert the image to a tensor and normalize the pixel values to the range [-1, 1]
+img_tensor = torch.tensor(np.array(img))
+img_tensor = ((img_tensor / 255.0) * 2.0) - 1.0
+
+# Create a batch by repeating the same normalized image for each noise level
+batch = img_tensor.repeat(len(noise_levels), 1, 1, 1)
+
+# Convert the noise levels to a tensor and ensure it is on the same device as the batch
+ts = torch.tensor(noise_levels, dtype=torch.int, device=batch.device)
+
+# Initialize a list to hold the noisified images
+noise_imgs = []
+
+# Generate random noise with the same shape as the batch
+epsilons = torch.randn(batch.shape, device=batch.device)
+
+# Generate a noisified version of the image for each noise level
+for i in range(len(ts)):
+    # Get the cumulative product of alpha values for the current noise level
+    a_hat = ddpm_sampler.alphas_cumprod[ts[i]]
+    
+    # Compute the noisified image using the DDPM formula
+    noise_imgs.append(
+        (math.sqrt(a_hat) * batch[i]) + (math.sqrt(1 - a_hat) * epsilons[i])
+    )
+
+# Stack the list of noisified images into a single tensor
+noise_imgs = torch.stack(noise_imgs, dim=0)
+
+# Rescale the noisified images to the range [0, 255] and convert to unsigned integers
+noise_imgs = (noise_imgs.clamp(-1, 1) + 1) / 2
+noise_imgs = (noise_imgs * 255).type(torch.uint8)
+
+# Convert the specified noisified image back to a PIL image and display it
+display_img = Image.fromarray(noise_imgs[7].squeeze(0).numpy(), 'RGB')
+display_img
+
+```
+> Note: This class should be a .ipynb file (which can be compiled with Jupyter Notebooks or Google Colab)
+
+**Key Concepts**
+
+DDPM (Denoising Diffusion Probabilistic Models):
+- A class of generative models that progressively add noise to data and then learn to reverse this process to generate new data samples.
+
+Image Processing with PyTorch:
+- The use of PyTorch tensors for manipulating and transforming images, including loading, normalizing, and converting images to different formats.
+
+Noise Levels:
+- Specific predefined values that determine the amount of noise added to the original image, affecting the quality and appearance of the generated noisy images.
+
+Batch Processing:
+- The technique of processing multiple samples (images) simultaneously to improve computational efficiency, often utilized in training and inference stages.
+
+Normalization of Image Tensors:
+- The process of scaling pixel values of images to a specific range, typically [-1, 1], to ensure consistent input for neural networks.
+
+
+## 8\. Summary
+
+Finally we have reached the end of this segment. This was a load of content that I spilled at you. If you implemented the code with the blog post, then it would have taken you a long time but at least you learned something new. 
+
+Building a Transformer model with PyTorch is a huge achievement as it is the pivotal step to learning machine learning and deep learning!!
+
+I hope you enjoyed my little blog. Thank you so much.
