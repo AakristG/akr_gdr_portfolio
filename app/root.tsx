@@ -18,6 +18,29 @@ import Header from "~/components/Header";
 import Footer from "~/components/Footer";
 import { useEffect, useState } from "react";
 
+export const links: LinksFunction = () => {
+  return [
+    {
+      rel: "preload",
+      href: "/tailwind.css",
+      as: "style",
+    },
+    {
+      rel: "stylesheet",
+      href: "/tailwind.css",
+    },
+    {
+      rel: "preload",
+      href: "https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap",
+      as: "style",
+    },
+    {
+      rel: "stylesheet",
+      href: "https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap",
+    },
+  ];
+};
+
 export const meta: MetaFunction = () => {
   return [
     { charSet: "utf-8" },
@@ -41,12 +64,11 @@ function App() {
   const [theme] = useTheme();
   const [isMounted, setIsMounted] = useState(false);
 
-  //Update the css immediately
-  const cssUpdate = Date.now();
-
   // Ensure the component is fully mounted before applying visibility
   useEffect(() => {
     setIsMounted(true);
+    // Add loaded class to show content after CSS is ready
+    document.documentElement.classList.add('loaded');
   }, []);
 
   return (
@@ -56,21 +78,15 @@ function App() {
     >
       <head>
         <Meta />
-        <link rel="preload" href={'/tailwind.css?v=${cssVersion}'} as="style" />
-        <link rel="stylesheet" href={'/tailwind.css?v=${cssVersion}'} />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap"
-          rel="stylesheet"
-          as="style"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap"
-          rel="stylesheet"
-        />
-        {/* Optional GitHub CSS */}
-        {/* <link rel="stylesheet" href="/styles/github-dark-dimmed.css" /> */}
         <NonFlashOfWrongThemeEls ssrTheme={false} />
         <Links />
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            html { visibility: hidden; }
+            html.loaded { visibility: visible; }
+            body { margin: 0; padding: 0; }
+          `
+        }} />
       </head>
       <body className="bg-background text-text-primary dark:bg-d-background dark:text-d-text-primary">
         <div className="flex min-h-screen flex-col">

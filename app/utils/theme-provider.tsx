@@ -50,10 +50,17 @@ function NonFlashOfWrongThemeEls({ ssrTheme }: { ssrTheme: boolean }) {
 
   const clientThemeCode = `
     (function() {
-      const storedTheme = localStorage.getItem("theme");
-      const prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
-      const theme = storedTheme || (prefersLight ? "light" : "dark");
-      document.documentElement.className = theme;
+      try {
+        const storedTheme = localStorage.getItem("theme");
+        const prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
+        const theme = storedTheme || (prefersLight ? "light" : "dark");
+        document.documentElement.className = theme;
+        document.documentElement.style.colorScheme = theme === "light" ? "light dark" : "dark light";
+      } catch (e) {
+        // Fallback for SSR or localStorage issues
+        document.documentElement.className = "light";
+        document.documentElement.style.colorScheme = "light dark";
+      }
     })();
   `;
 
@@ -63,9 +70,7 @@ function NonFlashOfWrongThemeEls({ ssrTheme }: { ssrTheme: boolean }) {
         name="color-scheme"
         content={theme === "light" ? "light dark" : "dark light"}
       />
-      {!ssrTheme && (
-        <script dangerouslySetInnerHTML={{ __html: clientThemeCode }} />
-      )}
+      <script dangerouslySetInnerHTML={{ __html: clientThemeCode }} />
     </>
   );
 }
