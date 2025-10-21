@@ -16,7 +16,6 @@ import {
 } from "~/utils/theme-provider";
 import Header from "~/components/Header";
 import Footer from "~/components/Footer";
-import { useEffect, useState } from "react";
 
 export const links: LinksFunction = () => {
   return [
@@ -62,31 +61,16 @@ export const meta: MetaFunction = () => {
 
 function App() {
   const [theme] = useTheme();
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Ensure the component is fully mounted before applying visibility
-  useEffect(() => {
-    setIsMounted(true);
-    // Add loaded class to show content after CSS is ready
-    document.documentElement.classList.add('loaded');
-  }, []);
 
   return (
     <html
       lang="en"
-      className={clsx(theme, { "invisible": !isMounted })} 
+      className={theme}
     >
       <head>
         <Meta />
         <NonFlashOfWrongThemeEls ssrTheme={false} />
         <Links />
-        <style dangerouslySetInnerHTML={{
-          __html: `
-            html { visibility: hidden; }
-            html.loaded { visibility: visible; }
-            body { margin: 0; padding: 0; }
-          `
-        }} />
       </head>
       <body className="bg-background text-text-primary dark:bg-d-background dark:text-d-text-primary">
         <div className="flex min-h-screen flex-col">
