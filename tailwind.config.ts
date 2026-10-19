@@ -1,7 +1,8 @@
-import type {Config} from "tailwindcss";
-const colors = require("tailwindcss/colors");
+import type { Config } from "tailwindcss";
+import colors from "tailwindcss/colors";
+import typography from "@tailwindcss/typography";
 
-module.exports = {
+export default {
   darkMode: "class",
   content: [
     "./app/**/*.{js,jsx,ts,tsx,mdx}",
@@ -42,10 +43,10 @@ module.exports = {
       },
     },
     fontFamily: {
-      serif: ['Merriweather', 'serif'],
-      sans: ['Fira Sans', 'sans-serif'],
-      roboto: ['Roboto', 'sans-serif'],
+      serif: ["Proxima Nova", "proxima-nova", "sans-serif"],
+      sans: ["Proxima Nova", "proxima-nova", "sans-serif"],
+      roboto: ["Proxima Nova", "proxima-nova", "sans-serif"],
     },
   },
-  plugins: [require("@tailwindcss/typography")],
+  plugins: [typography],
 } satisfies Config;

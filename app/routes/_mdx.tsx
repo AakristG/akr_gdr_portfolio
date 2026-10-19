@@ -14,7 +14,7 @@ const BlogLayout = () => {
     <StaggerParent >
       <div className="mx-auto flex w-full max-w-[47rem]">
         <ArrowLeft />{" "}
-        <NavLink className="back-button ml-2 font-sans" to={"/blog"}>
+        <NavLink className="back-button ml-2 font-sans" to="/">
           Back
         </NavLink>
       </div>

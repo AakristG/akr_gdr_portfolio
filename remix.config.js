@@ -11,7 +11,7 @@ module.exports = {
       unstable_tailwind: true,
       v2_routeConvention: true,
     },
-    mdx: async (filename) => {
+    mdx: async () => {
       const [rehypeHighlight] = await Promise.all([
         import("rehype-highlight").then((mod) => mod.default),
       ]);

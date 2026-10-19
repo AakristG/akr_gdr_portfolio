@@ -1,7 +1,5 @@
-import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { isMobile } from "react-device-detect";
-import React from 'react';
+import { motion, useReducedMotion } from "framer-motion";
+import React from "react";
 
 export interface StaggerChildProps {
   children: React.ReactNode;
@@ -9,28 +7,25 @@ export interface StaggerChildProps {
 }
 
 export const staggerChildVariants = {
-  hidden: { opacity: 0, y: 50 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  hidden: { opacity: 0, y: 36 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
+  },
 };
 
-// Animations are valid only inside StaggerParent and disabled on mobile devices
 export const StaggerChild = ({ children, className }: StaggerChildProps) => {
-  const [disableAnimations, setDisableAnimations] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
 
-  useEffect(() => {
-    setDisableAnimations(isMobile);
-  }, []);
+  if (prefersReducedMotion) {
+    return <div className={className}>{children}</div>;
+  }
 
   return (
-    <div>
-      {disableAnimations ? (
-        <div className={className}>{children}</div>
-      ) : (
-        <motion.div variants={staggerChildVariants} className={className}>
-          {children}
-        </motion.div>
-      )}
-    </div>
+    <motion.div variants={staggerChildVariants} className={className}>
+      {children}
+    </motion.div>
   );
 };
 

@@ -59,8 +59,6 @@ export interface BlogList {
   ];
   
   export const imgSrcs = {
-    mobile:
-      "https://res.cloudinary.com/dhmibl6q3/image/upload/v1728787421/file_i0o7ym.png",
-    desktop:
-      "https://res.cloudinary.com/dhmibl6q3/image/upload/v1728787421/file_i0o7ym.png",
+    mobile: "/images/profile.jpg",
+    desktop: "/images/profile.jpg",
   };
