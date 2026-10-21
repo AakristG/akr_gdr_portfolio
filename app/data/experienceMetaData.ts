@@ -8,7 +8,7 @@ export interface ExperienceItem {
 
 export const experienceList: Array<ExperienceItem> = [
   {
-    title: "Data Analyst & Database Administrator Intern",
+    title: "Data Engineering Intern",
     org: "UT Dallas Office of Information Technology",
     location: "Richardson, TX",
     period: "Dec 2025 – Present",

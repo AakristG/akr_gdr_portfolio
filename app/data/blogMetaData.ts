@@ -59,6 +59,6 @@ export interface BlogList {
   ];
   
   export const imgSrcs = {
-    mobile: "/images/profile.jpg",
-    desktop: "/images/profile.jpg",
+    mobile: "/images/profile.jpeg",
+    desktop: "/images/profile.jpeg",
   };

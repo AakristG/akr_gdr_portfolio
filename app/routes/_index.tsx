@@ -18,19 +18,10 @@ const ProjectsSection = lazy(() => import("~/components/ProjectsSection"));
 
 function AboutSection() {
   const [isClient, setIsClient] = useState(false);
-  const [isImageLoaded, setIsImageLoaded] = useState(false || isMobile);
-  const [imgSrc, setImgSrc] = useState("");
+  const imgSrc = isMobile ? imgSrcs.mobile : imgSrcs.desktop;
 
   useEffect(() => {
     setIsClient(true);
-    const img = new Image();
-    const nextSrc = isMobile ? imgSrcs.mobile : imgSrcs.desktop;
-
-    img.src = nextSrc;
-    setImgSrc(nextSrc);
-    img.onload = () => {
-      setIsImageLoaded(true);
-    };
   }, []);
 
   if (!isClient) {
@@ -87,17 +78,13 @@ function AboutSection() {
 
         <div className="relative my-0 flex items-center p-2 text-center max-w-md:mb-[1rem]">
           <picture className="flex items-center bg-white">
-            {isImageLoaded ? (
-              <SpringLoad>
-                <img
-                  className="mb-[1em] h-[360px] w-[280px] rounded-2xl object-cover object-[center_12%] shadow-md transition-transform duration-500 hover:scale-[1.03] md:h-[440px] md:w-[340px] lg:h-[520px] lg:w-[400px]"
-                  alt="Aakrist Godar"
-                  src={imgSrc}
-                />
-              </SpringLoad>
-            ) : (
-              <div className="h-[360px] w-[280px] rounded-2xl bg-gray-200 md:h-[440px] md:w-[340px] lg:h-[520px] lg:w-[400px]" />
-            )}
+            <SpringLoad>
+              <img
+                className="mb-[1em] h-auto w-[300px] max-w-full rounded-2xl object-contain shadow-md transition-transform duration-500 hover:scale-[1.03] md:w-[420px] lg:w-[520px]"
+                alt="Aakrist Godar"
+                src={imgSrc}
+              />
+            </SpringLoad>
           </picture>
         </div>
       </div>
